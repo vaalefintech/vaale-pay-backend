@@ -1,5 +1,8 @@
 import { InesperadoException, MyError } from "../utilities/MyError";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import {
+  DynamoDBClient,
+  ExecuteStatementCommand,
+} from "@aws-sdk/client-dynamodb";
 import {
   DynamoDBDocumentClient,
   BatchExecuteStatementCommand,
@@ -8,6 +11,7 @@ import {
 export interface VaaelTableDesc {
   tableName: string;
   keys: Array<string>;
+  rowTypes?: { [key: string]: any };
 }
 
 export class DynamoSrv {
@@ -108,13 +112,21 @@ export class DynamoSrv {
     sufix: string,
     prefixRow: string,
     sufixRow: string,
-    joinTxt: string
+    joinTxt: string,
+    rowTypes: { [key: string]: string } = {}
   ) {
     const llaves = Object.keys(row);
     const values = [];
     for (let i = 0; i < llaves.length; i++) {
       const llave = llaves[i];
-      values.push(row[llave]);
+      if (llave in rowTypes) {
+        const rowType = rowTypes[llave];
+        const temp: { [key: string]: any } = {};
+        temp[rowType] = row[llave];
+        values.push(temp);
+      } else {
+        values.push(row[llave]);
+      }
     }
 
     return {
@@ -195,6 +207,38 @@ export class DynamoSrv {
       throw new InesperadoException(err.message);
     }
   }
+  static async searchByPkSingle(
+    tableDesc: VaaelTableDesc,
+    row: any,
+    limit: number = 20,
+    nextToken: string | null = null
+  ) {
+    try {
+      const brokedObject = DynamoSrv.filterObject(row, tableDesc.keys);
+      const exploded: any = DynamoSrv.explodeObject(
+        `SELECT * FROM ${tableDesc.tableName} WHERE `,
+        brokedObject.resIn,
+        "",
+        "",
+        "=?",
+        " AND ",
+        tableDesc.rowTypes
+      );
+      exploded.Limit = limit;
+      if (nextToken != null) {
+        exploded.NextToken = nextToken;
+      }
+      exploded.ConsistentRead = false;
+      const command = new ExecuteStatementCommand(exploded);
+
+      const client = DynamoSrv.getClient();
+      const response = await client.docClient.send(command);
+      const items = DynamoSrv.checkError(response);
+      return items;
+    } catch (err: any) {
+      throw new InesperadoException(err.message);
+    }
+  }
   static async searchByPk(
     tableDesc: VaaelTableDesc,
     rows: Array<any>,
@@ -218,7 +262,6 @@ export class DynamoSrv {
             exploded.NextToken = nextToken;
           }
           exploded.ConsistentRead = true;
-          //console.log(JSON.stringify(exploded, null, 4));
           return exploded;
         }),
       });
@@ -269,7 +312,7 @@ export class DynamoSrv {
     const realResponse: Array<any> = [];
     for (let i = 0; i < respuestas.length; i++) {
       const respuesta: any = respuestas[i];
-      console.log(JSON.stringify(respuesta, null, 4));
+      //console.log(JSON.stringify(respuesta, null, 4));
       const error = respuesta["Error"];
       if (error) {
         const code = error["Code"];
@@ -283,6 +326,21 @@ export class DynamoSrv {
       if (item) {
         realResponse.push(item);
       }
+    }
+    return realResponse;
+  }
+  static checkError(response: any) {
+    if (response["$metadata"].httpStatusCode !== 200) {
+      throw new InesperadoException(
+        `Error accediendo a la base de datos ${response["$metadata"].httpStatusCode}`
+      );
+    }
+    // Itera las respuestas y retorna el primer error
+    const items = response["Items"];
+    const realResponse: Array<any> = [];
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      realResponse.push(item);
     }
     return realResponse;
   }

@@ -6,7 +6,7 @@ export class General {
   static getUserId(res: Response) {
     if (res.locals["user"]) {
       const tokePayload: VaaleOathPayload = res.locals["user"];
-      return `email:${tokePayload.email}`;
+      return `email/${tokePayload.email}`;
     }
     throw new NoHayUsuarioException("No se encontró el usuario");
   }
