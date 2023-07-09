@@ -18,12 +18,12 @@ export class ProductSrv {
 
     // Se busca y se asinga
     let foundProduct: VaaleProduct = {
-      id: `${marketId}:${codeBar}`,
-      codebar: codeBar,
-      label: `Prod ${codeBar}`,
       marketId: marketId,
+      codebar: codeBar,
+      brand: "Nestle",
+      label: `Prod ${codeBar}`,
+      detail: "45g",
       price: 1000,
-      quantity: 1,
     };
     respuesta.body = foundProduct;
 

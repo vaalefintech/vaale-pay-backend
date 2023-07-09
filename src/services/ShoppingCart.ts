@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import { VaaleProduct } from "../models/VaaleProduct";
 import { VaaleResponse } from "../models/VaaleResponse";
+import { VaaleShoppingCartDetail } from "../models/VaaleShoppingCartDetail";
+import { VaaleShoppingCartProduct } from "../models/VaaleShoppingCartProduct";
 import { General } from "../utilities/General";
 
 const DEFAUL_PAGE_SIZE = 20;
@@ -16,16 +18,19 @@ export class ShoppingCart {
     const userId = General.getUserId(res);
 
     // Se busca
-    const page: Array<VaaleProduct> = [];
+    const page: Array<VaaleShoppingCartDetail> = [];
     const marketId = "carulla";
     const codeBar = "2342345";
     page.push({
-      id: `${marketId}:${codeBar}`,
-      codebar: codeBar,
-      label: `Prod ${codeBar}`,
-      marketId: marketId,
-      price: 1000,
+      userId,
+      productId: `${marketId}/${codeBar}`,
       quantity: 1,
+      codebar: "7702024062745",
+      brand: "Nestle",
+      label: "Milo",
+      detail: "550g",
+      price: 19600,
+      marketId,
     });
     respuesta.body = page;
 
