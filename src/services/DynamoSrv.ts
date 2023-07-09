@@ -329,6 +329,23 @@ export class DynamoSrv {
     }
     return realResponse;
   }
+  static decodeItem(item: any) {
+    const keys = Object.keys(item);
+    const response: { [key: string]: any } = {};
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
+      const rawValue = item[key];
+      if ("S" in rawValue) {
+        response[key] = rawValue["S"];
+      } else if ("N" in rawValue) {
+        response[key] = parseFloat(rawValue["N"]);
+      } else {
+        response[key] = "codificar por favor";
+      }
+      // TODO seguir con los demás tipos, por ejemplo B para boolean
+    }
+    return response;
+  }
   static checkError(response: any) {
     if (response["$metadata"].httpStatusCode !== 200) {
       throw new InesperadoException(
@@ -336,12 +353,16 @@ export class DynamoSrv {
       );
     }
     // Itera las respuestas y retorna el primer error
+    //console.log(JSON.stringify(response, null, 4));
     const items = response["Items"];
     const realResponse: Array<any> = [];
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
-      realResponse.push(item);
+      realResponse.push(DynamoSrv.decodeItem(item));
     }
-    return realResponse;
+    return {
+      nextToken: response.NextToken,
+      items: realResponse,
+    };
   }
 }

@@ -31,14 +31,19 @@ export class ProductSrv {
     const codebar = General.readParam(req, "codebar", null, true);
     const marketId = General.readParam(req, "marketId", null, true);
 
-    respuesta.body = await DynamoSrv.searchByPk(ProductSrv.getTableDesc(), [
+    respuesta.body =
+      // Se responde
+      res.status(200).send(respuesta);
+  }
+  static async searchProductByBarCodeInternal(
+    codebar: string,
+    marketId: string
+  ) {
+    return await DynamoSrv.searchByPk(ProductSrv.getTableDesc(), [
       {
         codebar,
         marketId,
       },
     ]);
-
-    // Se responde
-    res.status(200).send(respuesta);
   }
 }
