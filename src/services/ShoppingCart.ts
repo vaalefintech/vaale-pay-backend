@@ -40,7 +40,7 @@ export class ShoppingCart {
     const marketId = General.readParam(req, "marketId", null, true);
     const userId = General.getUserId(res);
 
-    respuesta.body = await DynamoSrv.searchByPkSingle(
+    const response = await DynamoSrv.searchByPkSingle(
       ShoppingCart.getTableDescSecondary(),
       {
         userId,
@@ -49,6 +49,26 @@ export class ShoppingCart {
       size,
       nextToken
     );
+
+    const marketIdLength = marketId.length + 1;
+    const products = response.items;
+    // Se le agrega el codebar para hacer la consulta
+    products.forEach((product) => {
+      product.codebar = product.productId.substring(marketIdLength);
+    });
+    // Acá se simula el JOIN ...
+    const existentes = await ProductSrv.searchProductByBarCodeInternal(
+      products,
+      true
+    );
+    for (let i = 0; i < products.length; i++) {
+      const product = products[i];
+      const detail = existentes[i];
+      if (detail != null) {
+        Object.assign(product, detail);
+      }
+    }
+    respuesta.body = response;
 
     // Se responde
     res.status(200).send(respuesta);
@@ -63,8 +83,8 @@ export class ShoppingCart {
     if (quantity > 0) {
       // Se debe buscar que exista dicho producto y luego lo agrega
       const existente = await ProductSrv.searchProductByBarCodeInternal(
-        codebar,
-        marketId
+        [{ codebar, marketId }],
+        false
       );
       if (existente.length == 0) {
         throw new MyError(

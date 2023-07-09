@@ -243,7 +243,8 @@ export class DynamoSrv {
     tableDesc: VaaelTableDesc,
     rows: Array<any>,
     limit: number = 20,
-    nextToken: string | null = null
+    nextToken: string | null = null,
+    oneQueryOneResponse: boolean = false
   ) {
     try {
       const command = new BatchExecuteStatementCommand({
@@ -268,7 +269,7 @@ export class DynamoSrv {
 
       const client = DynamoSrv.getClient();
       const response = await client.docClient.send(command);
-      const items = DynamoSrv.checkErrors(response);
+      const items = DynamoSrv.checkErrors(response, oneQueryOneResponse);
       return items;
     } catch (err: any) {
       throw new InesperadoException(err.message);
@@ -301,7 +302,7 @@ export class DynamoSrv {
       throw new InesperadoException(err.message);
     }
   }
-  static checkErrors(response: any) {
+  static checkErrors(response: any, oneQueryOneResponse: boolean = false) {
     if (response["$metadata"].httpStatusCode !== 200) {
       throw new InesperadoException(
         `Error accediendo a la base de datos ${response["$metadata"].httpStatusCode}`
@@ -325,6 +326,10 @@ export class DynamoSrv {
       const item = respuesta["Item"];
       if (item) {
         realResponse.push(item);
+      } else {
+        if (oneQueryOneResponse) {
+          realResponse.push(null);
+        }
       }
     }
     return realResponse;

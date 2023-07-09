@@ -36,14 +36,15 @@ export class ProductSrv {
       res.status(200).send(respuesta);
   }
   static async searchProductByBarCodeInternal(
-    codebar: string,
-    marketId: string
+    query: Array<any>,
+    oneQueryOneResponse: boolean = false
   ) {
-    return await DynamoSrv.searchByPk(ProductSrv.getTableDesc(), [
-      {
-        codebar,
-        marketId,
-      },
-    ]);
+    return await DynamoSrv.searchByPk(
+      ProductSrv.getTableDesc(),
+      query,
+      1,
+      null,
+      oneQueryOneResponse
+    );
   }
 }

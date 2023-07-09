@@ -48,3 +48,15 @@ Finalmente, si se desea destruir todo:
 ```
 terraform destroy
 ```
+## Ejecutar en local
+
+Se deben exportar las credenciales:
+```
+export AWS_ACCESS_KEY_ID=XXXXXX
+export AWS_SECRET_ACCESS_KEY=XXXXX
+```
+Luego se ejecuta:
+```
+npm run dev
+```
+Se puede entonces ver 
