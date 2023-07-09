@@ -1,6 +1,11 @@
 resource "aws_apigatewayv2_api" "lambda" {
   name          = "${var.environment}_${local.project_name}_gw"
   protocol_type = "HTTP"
+  cors_configuration {
+    allow_origins = ["*"]
+    allow_methods = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+    allow_headers = ["Content-Type", "Authorization", "X-Amz-Date", "X-Api-Key", "X-Amz-Security-Token"]
+  }
 }
 
 resource "aws_cloudwatch_log_group" "api_gw" {
