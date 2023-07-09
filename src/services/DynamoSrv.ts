@@ -23,6 +23,53 @@ export class DynamoSrv {
       docClient: DynamoSrv.docClient,
     };
   }
+  static getCompundId(tableDesc: VaaelTableDesc, row: any) {
+    const values = [];
+    const keys = tableDesc.keys;
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
+      values.push(row[key]);
+    }
+    return values.join("/");
+  }
+  static getCompundMapIds(tableDesc: VaaelTableDesc, rows: Array<any>) {
+    const response: { [key: string]: any } = {};
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const rowKey = DynamoSrv.getCompundId(tableDesc, row);
+      response[rowKey] = row;
+    }
+    return response;
+  }
+  static async updateOrInsert(tableDesc: VaaelTableDesc, rows: Array<any>) {
+    const mapIn = DynamoSrv.getCompundMapIds(tableDesc, rows);
+    // Se consultan todas las llaves
+    const founds = await DynamoSrv.searchByPk(tableDesc, rows);
+    const mapFounds = DynamoSrv.getCompundMapIds(tableDesc, founds);
+    // Se calcula el arreglo de los que toca crear
+    const rowsCreate = [];
+    const rowsUpdate = [];
+    const allKeys = Object.keys(mapIn);
+    for (let i = 0; i < allKeys.length; i++) {
+      const aKey = allKeys[i];
+      if (!(aKey in mapFounds)) {
+        // No existe y toca crearlo
+        rowsCreate.push(mapIn[aKey]);
+      } else {
+        // Ya existe, solo toca actualizarlo
+        rowsUpdate.push(mapIn[aKey]);
+      }
+    }
+    // Se pide actualizar los que existen y crear los que no existen
+    const promesas = [];
+    if (rowsCreate.length > 0) {
+      promesas.push(DynamoSrv.insertTable(tableDesc, rowsCreate));
+    }
+    if (rowsUpdate.length > 0) {
+      promesas.push(DynamoSrv.updateByPk(tableDesc, rowsUpdate));
+    }
+    return Promise.all(promesas);
+  }
   static filterObject(row: any, columns: Array<string>) {
     const llaves = Object.keys(row);
     const resIn: any = {};
