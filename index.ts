@@ -35,14 +35,14 @@ app.post(`${process.env.PREFIX_PATH}/api/shopping_cart/page_products`, [
   express.json(),
   handleErrorsDecorator(ShoppingCart.pageProducts),
 ]);
-// Add a product to the shopping cart
+// Remove a product from the shopping cart
 app.post(`${process.env.PREFIX_PATH}/api/shopping_cart/remove_product`, [
   commonHeaders,
   checkAuthenticated,
   express.json(),
   handleErrorsDecorator(ShoppingCart.removeProduct),
 ]);
-// Add a product to the shopping cart
+// Update a product from the shopping cart
 app.post(`${process.env.PREFIX_PATH}/api/shopping_cart/update_product`, [
   commonHeaders,
   checkAuthenticated,

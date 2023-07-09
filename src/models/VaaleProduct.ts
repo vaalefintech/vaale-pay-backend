@@ -1,8 +1,10 @@
 export interface VaaleProduct {
-  id: string;
-  label: string;
+  id: string; // PK: marketId + codebar
   marketId: string;
-  price: number;
   codebar: string;
-  quantity?: number;
+  brand: string;
+  label: string;
+  detail: string;
+  price: number;
+  updated?: number; // AAAAMMddHHmmss
 }
