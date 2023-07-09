@@ -54,36 +54,65 @@ export class ShoppingCart {
     res.status(200).send(respuesta);
   }
 
+  static async updateProductInternal(
+    codebar: string,
+    marketId: string,
+    userId: string,
+    quantity: number
+  ) {
+    if (quantity > 0) {
+      // Se debe buscar que exista dicho producto y luego lo agrega
+      const existente = await ProductSrv.searchProductByBarCodeInternal(
+        codebar,
+        marketId
+      );
+      if (existente.length == 0) {
+        throw new MyError(
+          `El producto de código ${codebar} no está registrado.`,
+          400
+        );
+      }
+      const product = existente[0];
+
+      const shoppingCartProduct = {
+        userId,
+        productId: `${marketId}/${codebar}`,
+        marketId,
+        quantity,
+      };
+
+      await DynamoSrv.updateInsertDelete(ShoppingCart.getTableDescUpdate(), [
+        shoppingCartProduct,
+      ]);
+
+      Object.assign(product, shoppingCartProduct);
+      return product;
+    } else {
+      // Solo se borra
+      const product = {
+        userId,
+        productId: `${marketId}/${codebar}`,
+      };
+      await DynamoSrv.deleteByPk(ShoppingCart.getTableDescUpdate(), [product]);
+      return null;
+    }
+  }
+
   static async addProduct(req: Request, res: Response, next: Function) {
     const respuesta: VaaleResponse = {
       ok: true,
     };
-    // Se lee el parámetro
+    // Se leen los parámetros
     const codebar: string = General.readParam(req, "codebar", null, true);
     const marketId = General.readParam(req, "marketId", null, true);
     const userId = General.getUserId(res);
 
-    // Se debe buscar que exista dicho producto y luego lo agrega
-    const existente = await ProductSrv.searchProductByBarCodeInternal(
+    const product = await ShoppingCart.updateProductInternal(
       codebar,
-      marketId
+      marketId,
+      userId,
+      1
     );
-    if (existente.length == 0) {
-      throw new MyError(
-        `El producto de código ${codebar} no está registrado.`,
-        400
-      );
-    }
-    const product = existente[0];
-
-    await DynamoSrv.updateInsertDelete(ShoppingCart.getTableDescUpdate(), [
-      {
-        userId,
-        productId: `${marketId}/${codebar}`,
-        marketId,
-        quantity: 1,
-      },
-    ]);
 
     respuesta.body = {
       product,
@@ -98,10 +127,22 @@ export class ShoppingCart {
       ok: true,
     };
     // Se lee el parámetro
-    const product: VaaleProduct = General.readParam(req, "product", null, true);
+    // Se leen los parámetros
+    const codebar: string = General.readParam(req, "codebar", null, true);
+    const quantity: number = General.readParam(req, "quantity", 0, true);
+    const marketId = General.readParam(req, "marketId", null, true);
+    const userId = General.getUserId(res);
 
-    // Se busca
-    respuesta.body = product;
+    const product = await ShoppingCart.updateProductInternal(
+      codebar,
+      marketId,
+      userId,
+      quantity
+    );
+
+    respuesta.body = {
+      product,
+    };
 
     // Se responde
     res.status(200).send(respuesta);
@@ -111,11 +152,21 @@ export class ShoppingCart {
     const respuesta: VaaleResponse = {
       ok: true,
     };
-    // Se lee el parámetro
-    const id = General.readParam(req, "id", null, true);
+    // Se leen los parámetros
+    const codebar: string = General.readParam(req, "codebar", null, true);
+    const marketId = General.readParam(req, "marketId", null, true);
+    const userId = General.getUserId(res);
 
-    // Se busca
-    respuesta.body = "Ok";
+    const product = await ShoppingCart.updateProductInternal(
+      codebar,
+      marketId,
+      userId,
+      0
+    );
+
+    respuesta.body = {
+      product,
+    };
 
     // Se responde
     res.status(200).send(respuesta);
