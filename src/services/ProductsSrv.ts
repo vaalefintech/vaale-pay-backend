@@ -2,11 +2,14 @@ import { Request, Response } from "express";
 import { VaaleProduct } from "../models/VaaleProduct";
 import { VaaleResponse } from "../models/VaaleResponse";
 import { General } from "../utilities/General";
-import { DynamoSrv } from "./DynamoSrv";
+import { DynamoSrv, VaaelTableDesc } from "./DynamoSrv";
 
 export class ProductSrv {
-  static getTableName() {
-    return `${process.env.ENVIRONMENT}_product`;
+  static getTableDesc(): VaaelTableDesc {
+    return {
+      tableName: `${process.env.ENVIRONMENT}_product`,
+      keys: ["marketId", "codebar"],
+    };
   }
   static async upload(req: Request, res: Response, next: Function) {
     const respuesta: VaaleResponse = {
@@ -14,8 +17,11 @@ export class ProductSrv {
     };
     const payload: Array<any> = General.readParam(req, "payload", null, true);
     // Pass it to dynamo
-    await DynamoSrv.updateTable(ProductSrv.getTableName(), payload);
-    respuesta.body = payload;
+    const readed = await DynamoSrv.searchByPk(
+      ProductSrv.getTableDesc(),
+      payload
+    );
+    respuesta.body = readed;
     res.status(200).send(respuesta);
   }
   static async searchProductByBarCode(
