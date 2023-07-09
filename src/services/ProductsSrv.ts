@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import { VaaleProduct } from "../models/VaaleProduct";
 import { VaaleResponse } from "../models/VaaleResponse";
 import { General } from "../utilities/General";
 import { DynamoSrv, VaaelTableDesc } from "./DynamoSrv";
