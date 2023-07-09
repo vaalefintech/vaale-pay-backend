@@ -1,8 +1,7 @@
 export interface VaaleShoppingCartProduct {
-  id: string; // PK: userId + marketId + codebar
-  productId: string; // marketId + codebar
-  shoppingCartId: string; // userId + marketId
   userId: string;
+  productId: string;
+  marketId: string;
   quantity: number;
-  updated?: number; // AAAAMMddHHmmss
+  updated?: number;
 }

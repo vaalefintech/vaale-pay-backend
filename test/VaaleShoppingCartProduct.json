@@ -1,16 +1,14 @@
 [
     {
-        "id": "email/test@vaale.co/carulla5078/7702024062745",
-        "productId": "carulla5078/7702024062745",
-        "shoppingCartId": "email/test@vaale.co/carulla5078",
         "userId": "email/test@vaale.co",
+        "productId": "carulla5078/7702024062745",
+        "marketId": "carulla5078",
         "quantity": 1
     },
     {
-        "id": "email/test@vaale.co/carulla5078/7704269106390",
-        "productId": "carulla5078/7704269106390",
-        "shoppingCartId": "email/test@vaale.co/carulla5078",
         "userId": "email/test@vaale.co",
-        "quantity": 1
+        "productId": "carulla5078/7704269106390",
+        "marketId": "carulla5078",
+        "quantity": 3
     }
 ]

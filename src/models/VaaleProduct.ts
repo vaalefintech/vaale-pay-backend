@@ -1,5 +1,4 @@
 export interface VaaleProduct {
-  id: string; // PK: marketId + codebar
   marketId: string;
   codebar: string;
   brand: string;
