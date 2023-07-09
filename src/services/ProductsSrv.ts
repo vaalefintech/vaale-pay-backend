@@ -4,6 +4,13 @@ import { VaaleResponse } from "../models/VaaleResponse";
 import { General } from "../utilities/General";
 
 export class ProductSrv {
+  static async upload(req: Request, res: Response, next: Function) {
+    const respuesta: VaaleResponse = {
+      ok: true,
+    };
+    respuesta.body = General.readParam(req, "payload", null, true);
+    res.status(200).send(respuesta);
+  }
   static async searchProductByBarCode(
     req: Request,
     res: Response,

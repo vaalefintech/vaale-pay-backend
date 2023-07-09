@@ -62,6 +62,12 @@ app.post(`${process.env.PREFIX_PATH}/api/product/bycodebar`, [
   express.json(),
   handleErrorsDecorator(ProductSrv.searchProductByBarCode),
 ]);
+// Upload products
+app.post(`${process.env.PREFIX_PATH}/api/product/upload`, [
+  commonHeaders,
+  express.json(),
+  handleErrorsDecorator(ProductSrv.upload),
+]);
 // Just ping service
 app.post(`${process.env.PREFIX_PATH}/api`, vaalePing);
 

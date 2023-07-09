@@ -1,26 +1,28 @@
-[
-    {
-        "marketId": "carulla5078",
-        "codebar": "7702024062745",
-        "brand": "Nestle",
-        "label": "Milo",
-        "detail": "550g",
-        "price": 19600
-    },
-    {
-        "marketId": "carulla5078",
-        "codebar": "7701001929446",
-        "brand": "Frescampo",
-        "label": "Maicitos dulces",
-        "detail": "425g",
-        "price": 5000
-    },
-    {
-        "marketId": "carulla5078",
-        "codebar": "7704269106390",
-        "brand": "Bicco",
-        "label": "Café instantáneo",
-        "detail": "85g",
-        "price": 3000
-    }
-]
+{
+    "payload": [
+        {
+            "marketId": "carulla5078",
+            "codebar": "7702024062745",
+            "brand": "Nestle",
+            "label": "Milo",
+            "detail": "550g",
+            "price": 19600
+        },
+        {
+            "marketId": "carulla5078",
+            "codebar": "7701001929446",
+            "brand": "Frescampo",
+            "label": "Maicitos dulces",
+            "detail": "425g",
+            "price": 5000
+        },
+        {
+            "marketId": "carulla5078",
+            "codebar": "7704269106390",
+            "brand": "Bicco",
+            "label": "Café instantáneo",
+            "detail": "85g",
+            "price": 3000
+        }
+    ]
+}
