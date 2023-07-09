@@ -8,7 +8,8 @@ resource "aws_lambda_function" "lambda_app_srv" {
 
   environment {
     variables = {
-      ENVIRONMENT = "production"
+      DEV_MODE    = "false"
+      ENVIRONMENT = var.environment
       PREFIX_PATH = "/${var.environment}_${local.project_name}_stage"
 
       OAUTH_ISSUER_BASE_URL = "https://devid.vaale.co/auth/realms/vaale"
@@ -49,6 +50,14 @@ EOF
             "logs:CreateLogGroup",
             "logs:CreateLogStream",
             "logs:PutLogEvents",
+          ],
+          "Resource" : "*"
+        },
+        {
+          "Sid" : "LambdaDynamo",
+          "Effect" : "Allow",
+          "Action" : [
+            "dynamodb:*",
           ],
           "Resource" : "*"
         }

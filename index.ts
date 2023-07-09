@@ -71,7 +71,7 @@ app.post(`${process.env.PREFIX_PATH}/api/product/upload`, [
 // Just ping service
 app.post(`${process.env.PREFIX_PATH}/api`, vaalePing);
 
-if (process.env.ENVIRONMENT === "production") {
+if (process.env.DEV_MODE === "false") {
   const server = awsServerlessExpress.createServer(app);
   exports.handler = (event: any, context: any) =>
     awsServerlessExpress.proxy(server, event, context);
