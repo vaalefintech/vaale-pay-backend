@@ -2,13 +2,20 @@ import { Request, Response } from "express";
 import { VaaleProduct } from "../models/VaaleProduct";
 import { VaaleResponse } from "../models/VaaleResponse";
 import { General } from "../utilities/General";
+import { DynamoSrv } from "./DynamoSrv";
 
 export class ProductSrv {
+  static getTableName() {
+    return `${process.env.ENVIRONMENT}_product`;
+  }
   static async upload(req: Request, res: Response, next: Function) {
     const respuesta: VaaleResponse = {
       ok: true,
     };
-    respuesta.body = General.readParam(req, "payload", null, true);
+    const payload: Array<any> = General.readParam(req, "payload", null, true);
+    // Pass it to dynamo
+    await DynamoSrv.updateTable(ProductSrv.getTableName(), payload);
+    respuesta.body = payload;
     res.status(200).send(respuesta);
   }
   static async searchProductByBarCode(
