@@ -62,13 +62,85 @@ export class DynamoSrv {
       Parameters: values,
     };
   }
+  static async updateByPk(tableDesc: VaaelTableDesc, rows: Array<any>) {
+    try {
+      const AHORA = new Date().getTime();
+      const command = new BatchExecuteStatementCommand({
+        Statements: rows.map((row) => {
+          row.updated = AHORA;
+          const brokedObject = DynamoSrv.filterObject(row, tableDesc.keys);
+          const exploded1: any = DynamoSrv.explodeObject(
+            `UPDATE ${tableDesc.tableName} SET `,
+            brokedObject.resOut,
+            "",
+            "",
+            "=?",
+            ", "
+          );
+          const exploded2: any = DynamoSrv.explodeObject(
+            `WHERE `,
+            brokedObject.resIn,
+            "",
+            "",
+            "=?",
+            " AND "
+          );
+
+          let allParams: Array<any> = exploded1.Parameters;
+          allParams = allParams.concat(exploded2.Parameters);
+
+          const exploded = {
+            Statement: `${exploded1.Statement} ${exploded2.Statement}`,
+            Parameters: allParams,
+          };
+          console.log(JSON.stringify(exploded, null, 4));
+          return exploded;
+        }),
+      });
+
+      const client = DynamoSrv.getClient();
+      const response = await client.docClient.send(command);
+      const items = DynamoSrv.checkErrors(response);
+      return items;
+    } catch (err: any) {
+      throw new InesperadoException(err.message);
+    }
+  }
+  static async deleteByPk(tableDesc: VaaelTableDesc, rows: Array<any>) {
+    try {
+      const command = new BatchExecuteStatementCommand({
+        Statements: rows.map((row) => {
+          const brokedObject = DynamoSrv.filterObject(row, tableDesc.keys);
+          const exploded: any = DynamoSrv.explodeObject(
+            `DELETE FROM ${tableDesc.tableName} WHERE `,
+            brokedObject.resIn,
+            "",
+            "",
+            "=?",
+            " AND "
+          );
+          exploded.ConsistentRead = true;
+          //console.log(JSON.stringify(exploded, null, 4));
+          return exploded;
+        }),
+      });
+
+      const client = DynamoSrv.getClient();
+      const response = await client.docClient.send(command);
+      const items = DynamoSrv.checkErrors(response);
+      return items;
+    } catch (err: any) {
+      throw new InesperadoException(err.message);
+    }
+  }
   static async searchByPk(tableDesc: VaaelTableDesc, rows: Array<any>) {
     try {
       const command = new BatchExecuteStatementCommand({
         Statements: rows.map((row) => {
+          const brokedObject = DynamoSrv.filterObject(row, tableDesc.keys);
           const exploded: any = DynamoSrv.explodeObject(
             `SELECT * FROM ${tableDesc.tableName} WHERE `,
-            DynamoSrv.filterObject(row, tableDesc.keys).resIn,
+            brokedObject.resIn,
             "",
             "",
             "=?",
@@ -90,8 +162,10 @@ export class DynamoSrv {
   }
   static async insertTable(tableDesc: VaaelTableDesc, rows: Array<any>) {
     try {
+      const AHORA = new Date().getTime();
       const command = new BatchExecuteStatementCommand({
         Statements: rows.map((row) => {
+          row.updated = AHORA;
           const exploded = DynamoSrv.explodeObject(
             `INSERT INTO ${tableDesc.tableName} value {`,
             row,
