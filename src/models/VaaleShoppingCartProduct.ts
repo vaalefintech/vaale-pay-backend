@@ -4,4 +4,5 @@ export interface VaaleShoppingCartProduct {
   marketId: string;
   quantity: number;
   updated?: number;
+  delete?: boolean;
 }

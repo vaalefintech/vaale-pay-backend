@@ -41,23 +41,35 @@ export class DynamoSrv {
     }
     return response;
   }
-  static async updateOrInsert(tableDesc: VaaelTableDesc, rows: Array<any>) {
-    const mapIn = DynamoSrv.getCompundMapIds(tableDesc, rows);
-    // Se consultan todas las llaves
-    const founds = await DynamoSrv.searchByPk(tableDesc, rows);
-    const mapFounds = DynamoSrv.getCompundMapIds(tableDesc, founds);
-    // Se calcula el arreglo de los que toca crear
+  static async updateInsertDelete(
+    tableDesc: VaaelTableDesc,
+    rowsIn: Array<any>
+  ) {
     const rowsCreate = [];
     const rowsUpdate = [];
+    const rowsDelete: Array<any> = [];
+    rowsIn.forEach((row) => {
+      if ("delete" in row) {
+        rowsDelete.push(row);
+      }
+    });
+    const mapIn = DynamoSrv.getCompundMapIds(tableDesc, rowsIn);
+    // Se consultan todas las llaves
+    const founds = await DynamoSrv.searchByPk(tableDesc, rowsIn);
+    const mapFounds = DynamoSrv.getCompundMapIds(tableDesc, founds);
+    const mapDelete = DynamoSrv.getCompundMapIds(tableDesc, rowsDelete);
+    // Se calcula el arreglo de los que toca crear
     const allKeys = Object.keys(mapIn);
     for (let i = 0; i < allKeys.length; i++) {
       const aKey = allKeys[i];
-      if (!(aKey in mapFounds)) {
-        // No existe y toca crearlo
-        rowsCreate.push(mapIn[aKey]);
-      } else {
-        // Ya existe, solo toca actualizarlo
-        rowsUpdate.push(mapIn[aKey]);
+      if (!(aKey in mapDelete)) {
+        if (!(aKey in mapFounds)) {
+          // No existe y toca crearlo
+          rowsCreate.push(mapIn[aKey]);
+        } else {
+          // Ya existe, solo toca actualizarlo
+          rowsUpdate.push(mapIn[aKey]);
+        }
       }
     }
     // Se pide actualizar los que existen y crear los que no existen
@@ -67,6 +79,9 @@ export class DynamoSrv {
     }
     if (rowsUpdate.length > 0) {
       promesas.push(DynamoSrv.updateByPk(tableDesc, rowsUpdate));
+    }
+    if (rowsDelete.length > 0) {
+      promesas.push(DynamoSrv.deleteByPk(tableDesc, rowsDelete));
     }
     return Promise.all(promesas);
   }

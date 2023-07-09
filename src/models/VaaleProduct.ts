@@ -6,4 +6,5 @@ export interface VaaleProduct {
   detail: string;
   price: number;
   updated?: number; // AAAAMMddHHmmss
+  delete?: boolean;
 }

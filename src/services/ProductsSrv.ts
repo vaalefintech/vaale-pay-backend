@@ -17,7 +17,7 @@ export class ProductSrv {
     };
     const payload: Array<any> = General.readParam(req, "payload", null, true);
     // Pass it to dynamo
-    const readed = await DynamoSrv.updateOrInsert(
+    const readed = await DynamoSrv.updateInsertDelete(
       ProductSrv.getTableDesc(),
       payload
     );
