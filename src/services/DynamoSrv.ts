@@ -155,7 +155,7 @@ export class DynamoSrv {
             Statement: `${exploded1.Statement} ${exploded2.Statement}`,
             Parameters: allParams,
           };
-          console.log(JSON.stringify(exploded, null, 4));
+          //console.log(JSON.stringify(exploded, null, 4));
           return exploded;
         }),
       });
@@ -260,7 +260,7 @@ export class DynamoSrv {
     const realResponse: Array<any> = [];
     for (let i = 0; i < respuestas.length; i++) {
       const respuesta: any = respuestas[i];
-      console.log(JSON.stringify(respuesta, null, 4));
+      //console.log(JSON.stringify(respuesta, null, 4));
       const error = respuesta["Error"];
       if (error) {
         const code = error["Code"];
