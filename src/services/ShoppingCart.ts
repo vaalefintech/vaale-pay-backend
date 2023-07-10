@@ -52,20 +52,23 @@ export class ShoppingCart {
 
     const marketIdLength = marketId.length + 1;
     const products = response.items;
-    // Se le agrega el codebar para hacer la consulta
-    products.forEach((product) => {
-      product.codebar = product.productId.substring(marketIdLength);
-    });
-    // Acá se simula el JOIN ...
-    const existentes = await ProductSrv.searchProductByBarCodeInternal(
-      products,
-      true
-    );
-    for (let i = 0; i < products.length; i++) {
-      const product = products[i];
-      const detail = existentes[i];
-      if (detail != null) {
-        Object.assign(product, detail);
+
+    if (products.length > 0) {
+      // Se le agrega el codebar para hacer la consulta
+      products.forEach((product) => {
+        product.codebar = product.productId.substring(marketIdLength);
+      });
+      // Acá se simula el JOIN ...
+      const existentes = await ProductSrv.searchProductByBarCodeInternal(
+        products,
+        true
+      );
+      for (let i = 0; i < products.length; i++) {
+        const product = products[i];
+        const detail = existentes[i];
+        if (detail != null) {
+          Object.assign(product, detail);
+        }
       }
     }
     respuesta.body = response;
