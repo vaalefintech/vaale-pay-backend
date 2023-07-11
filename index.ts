@@ -10,6 +10,8 @@ import {
 } from "./src/utilities/Network";
 import { ProductSrv } from "./src/services/ProductsSrv";
 import { ShoppingCart } from "./src/services/ShoppingCart";
+import { PayMethodSrv } from "./src/services/PayMethodSrv";
+import { PaymentsSrv } from "./src/services/PaymentsSrv";
 
 dotenv.config();
 
@@ -27,6 +29,38 @@ const authParams = {
 };
 
 app.use(auth(authParams));
+
+// CRUD payment methods
+app.post(`${process.env.PREFIX_PATH}/api/payment_history/page`, [
+  commonHeaders,
+  checkAuthenticated,
+  express.json(),
+  handleErrorsDecorator(PaymentsSrv.pagePaymentHistory),
+]);
+
+// CRUD payment methods
+app.post(`${process.env.PREFIX_PATH}/api/payment_method/update`, [
+  commonHeaders,
+  checkAuthenticated,
+  express.json(),
+  handleErrorsDecorator(PayMethodSrv.updatePaymentMethod),
+]);
+
+// Page the payment methods
+app.post(`${process.env.PREFIX_PATH}/api/payment_method/page`, [
+  commonHeaders,
+  checkAuthenticated,
+  express.json(),
+  handleErrorsDecorator(PayMethodSrv.pagePaymentMethods),
+]);
+
+// Convert current shopping cart into history
+app.post(`${process.env.PREFIX_PATH}/api/shopping_cart/close`, [
+  commonHeaders,
+  checkAuthenticated,
+  express.json(),
+  handleErrorsDecorator(ShoppingCart.close),
+]);
 
 // Page shopping cart products
 app.post(`${process.env.PREFIX_PATH}/api/shopping_cart/page_products`, [
@@ -65,6 +99,7 @@ app.post(`${process.env.PREFIX_PATH}/api/product/bycodebar`, [
 // Upload products
 app.post(`${process.env.PREFIX_PATH}/api/product/upload`, [
   commonHeaders,
+  checkAuthenticated,
   express.json(),
   handleErrorsDecorator(ProductSrv.upload),
 ]);

@@ -30,6 +30,18 @@ export class ShoppingCart {
       keys: ["userId", "productId"],
     };
   }
+  static async close(req: Request, res: Response, next: Function) {
+    const respuesta: VaaleResponse = {
+      ok: true,
+    };
+
+    // Cargar todos los productos
+    // Cargar el medio de pago
+    // Totalizar
+    // Persistir
+
+    res.status(200).send(respuesta);
+  }
   static async pageProducts(req: Request, res: Response, next: Function) {
     const respuesta: VaaleResponse = {
       ok: true,

@@ -1,6 +1,6 @@
 
 # terraform apply -var environment="stg"
-# terraform apply -var environment="pro"
+# terraform apply -var environment="vaale-prod"
 variable "environment" {
   description = "Environment"
   type        = string

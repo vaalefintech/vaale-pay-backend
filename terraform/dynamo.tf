@@ -58,3 +58,49 @@ resource "aws_dynamodb_table" "vaale_shopping_cart_product_table" {
     Environment = var.environment
   }
 }
+
+resource "aws_dynamodb_table" "vaale_payment_method_table" {
+  name           = "${var.environment}_payment_method"
+  billing_mode   = "PROVISIONED"
+  read_capacity  = 20
+  write_capacity = 20
+  hash_key       = "userId"
+  range_key      = "cardId"
+
+  attribute {
+    name = "userId"
+    type = "S"
+  }
+
+  attribute {
+    name = "cardId"
+    type = "S"
+  }
+
+  tags = {
+    Environment = var.environment
+  }
+}
+
+resource "aws_dynamodb_table" "vaale_payment_table" {
+  name           = "${var.environment}_payment"
+  billing_mode   = "PROVISIONED"
+  read_capacity  = 20
+  write_capacity = 20
+  hash_key       = "userId"
+  range_key      = "timestamp"
+
+  attribute {
+    name = "userId"
+    type = "S"
+  }
+
+  attribute {
+    name = "timestamp"
+    type = "S"
+  }
+
+  tags = {
+    Environment = var.environment
+  }
+}
