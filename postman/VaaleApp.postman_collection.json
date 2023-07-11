@@ -1,0 +1,280 @@
+{
+	"info": {
+		"_postman_id": "078e9656-908c-4f80-97e9-ec96782c87d6",
+		"name": "VaaleApp",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "14123624"
+	},
+	"item": [
+		{
+			"name": "{{host}}/api/shopping_cart/remove_product",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"marketId\": \"carulla5078\", \"codebar\": \"7704269106390\"}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/api/shopping_cart/remove_product",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"shopping_cart",
+						"remove_product"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{host}}/api/shopping_cart/add_product",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"marketId\": \"carulla5078\", \"codebar\": \"7704269106390\"}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/api/shopping_cart/add_product",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"shopping_cart",
+						"add_product"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{host}}/api/shopping_cart/update_product",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"marketId\": \"carulla5078\", \"codebar\": \"7704269106390\", \"quantity\": 3}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/api/shopping_cart/update_product",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"shopping_cart",
+						"update_product"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{host}}/api/shopping_cart/page_products",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"marketId\": \"carulla5078\", \"size\": 20}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/api/shopping_cart/page_products",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"shopping_cart",
+						"page_products"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{host}}/api/product/bycodebar",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"codebar\": \"7702024062745\", \"marketId\": \"carulla5078\"}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/api/product/bycodebar",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"product",
+						"bycodebar"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{host}}/api/product/upload",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"payload\": [\n        {\n            \"marketId\": \"carulla5078\",\n            \"codebar\": \"7702024062745\",\n            \"brand\": \"Nestle\",\n            \"label\": \"Milo\",\n            \"detail\": \"550g\",\n            \"price\": 19600\n        },\n        {\n            \"marketId\": \"carulla5078\",\n            \"codebar\": \"7701001929446\",\n            \"brand\": \"Frescampo\",\n            \"label\": \"Maicitos dulces\",\n            \"detail\": \"425g\",\n            \"price\": 5000\n        },\n        {\n            \"marketId\": \"carulla5078\",\n            \"codebar\": \"7704269106390\",\n            \"brand\": \"Bicco\",\n            \"label\": \"Café instantáneo\",\n            \"detail\": \"85g\",\n            \"price\": 3000\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/api/product/upload",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"product",
+						"upload"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "https://devid.vaale.co/auth/realms/vaale/protocol/openid-connect/token",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "username",
+							"value": "test@vaale.co",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "3132",
+							"type": "text"
+						},
+						{
+							"key": "client_id",
+							"value": "vaale-api",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "C0tm4vHSbFZVzu5MDldleLa8Hawy4aTy",
+							"type": "text"
+						},
+						{
+							"key": "grant_type",
+							"value": "password",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://devid.vaale.co/auth/realms/vaale/protocol/openid-connect/token",
+					"protocol": "https",
+					"host": [
+						"devid",
+						"vaale",
+						"co"
+					],
+					"path": [
+						"auth",
+						"realms",
+						"vaale",
+						"protocol",
+						"openid-connect",
+						"token"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
