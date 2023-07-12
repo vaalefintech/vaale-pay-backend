@@ -10,6 +10,7 @@ import { ProductSrv } from "./ProductsSrv";
 import { v4 as uuidv4 } from "uuid";
 import { VaalePaymentHistory } from "../models/VaalePaymentHistory";
 import { PayMethodSrv } from "./PayMethodSrv";
+import { PaymentsSrv } from "./PaymentsSrv";
 
 const DEFAUL_PAGE_SIZE = 20;
 
@@ -33,6 +34,12 @@ export class ShoppingCart {
       keys: ["userId", "productId"],
     };
   }
+  static getTableDescUpdateDone(): VaaelTableDesc {
+    return {
+      tableName: `${process.env.ENVIRONMENT}_shopping_cart_done_product`,
+      keys: ["userId", "marketId"],
+    };
+  }
   static async close(req: Request, res: Response, next: Function) {
     const respuesta: VaaleResponse = {
       ok: true,
@@ -50,35 +57,61 @@ export class ShoppingCart {
       true
     );
     const products = currentShoppingCart.products;
+    if (!(products instanceof Array)) {
+      throw new MyError(`El carrito de compras no tiene productos.`, 400);
+    }
 
-    // Se complementa el payment method
-    const paymentMethod = currentShoppingCart.paymentMethod;
+    // Se valida el payment method
+    if (!currentShoppingCart.cardId) {
+      throw new MyError(`No se asignó el método de pago`, 400);
+    }
     const promesaPaymentMethod = PayMethodSrv.searchExactPaymentMethod(
       userId,
-      paymentMethod.cardId
+      currentShoppingCart.cardId
     );
 
     // Se asegura que el market id sea el actual
     // Se asegura el usuario actual
+    const originalProducts = [];
     for (let i = 0; i < products.length; i++) {
       const product = products[i];
       product.marketId = marketId;
       product.userId = userId;
-      product.productId = `${marketId}/${product.codebar}`;
+      const productId = `${marketId}/${product.codebar}`;
+      product.productId = productId;
+      originalProducts.push({
+        userId,
+        productId,
+      });
     }
 
     // Leer de la base de datos el producto en sí por desconfianza de los valores que se envían desde el frontend
-    const reales = await ProductSrv.searchProductByBarCodeInternal(
-      products,
-      true
+    const promesasLectura = [];
+    promesasLectura.push(
+      ProductSrv.searchProductByBarCodeInternal(products, true)
     );
+    promesasLectura.push(
+      ShoppingCart.searchProductByBarCodeInternal(products, true)
+    );
+
+    const respuestasPromesasLectura = await Promise.all(promesasLectura);
+    const reales = respuestasPromesasLectura[0];
+    const realesCart = respuestasPromesasLectura[1];
+
     // Se sobreescriben los valores
     for (let i = 0; i < products.length; i++) {
       const producto = products[i];
       const real = reales[i];
+      const realCart = realesCart[i];
       if (real == null) {
         throw new MyError(
           `El producto ${producto.codebar} no existe en el comercio ${marketId}`,
+          400
+        );
+      }
+      if (realCart == null) {
+        throw new MyError(
+          `El producto ${producto.codebar} no existe en el carrito de compras`,
           400
         );
       }
@@ -90,11 +123,9 @@ export class ShoppingCart {
     // Actualizar _shopping_cart_product con:
     for (let i = 0; i < products.length; i++) {
       const product = products[i];
-      // 1. marketId + /closed
-      product.marketId = marketIdClosed;
-
-      // 2. Identificador de esta compra uuid
-      product.uuid = uuid;
+      product.marketId = uuid;
+      product.originalMarketId = marketId;
+      product.productId = `${uuid}/${product.codebar}`;
       let valor = product.quantity * product.price;
       if (typeof product.taxes == "number") {
         const productTaxes = valor * product.taxes;
@@ -111,13 +142,43 @@ export class ShoppingCart {
     if (paymentMethodsFound.items.length == 0) {
       throw new MyError(`El usuario no tiene el método de pago proveído`, 400);
     }
-    currentShoppingCart.paymentMethod = paymentMethodsFound.items[0];
+    //currentShoppingCart.paymentMethod = paymentMethodsFound.items[0];
 
     // Persistir en transacción
     // Se persiste como tal el encabezado del pago
-    // Se persiste el detalle de cada producto
+    const onlyProducts = currentShoppingCart.products;
+    delete currentShoppingCart.products;
+    currentShoppingCart.uuid = uuid;
+    currentShoppingCart.userId = userId;
+    currentShoppingCart.marketId = marketId;
 
-    respuesta.body = currentShoppingCart;
+    const promesas = [];
+    if (onlyProducts) {
+      // Se crea el encabezado de la compra
+      promesas.push(
+        DynamoSrv.insertTable(PaymentsSrv.getTableDescPrimary(), [
+          currentShoppingCart,
+        ])
+      );
+      // Se persiste el detalle de cada producto
+      promesas.push(
+        DynamoSrv.insertTable(
+          ShoppingCart.getTableDescUpdateDone(),
+          onlyProducts
+        )
+      );
+      // Se borra el carrito de compras actual
+      promesas.push(
+        DynamoSrv.deleteByPk(
+          ShoppingCart.getTableDescUpdate(),
+          originalProducts
+        )
+      );
+    }
+
+    await Promise.all(promesas);
+
+    respuesta.body = onlyProducts;
 
     res.status(200).send(respuesta);
   }
@@ -284,5 +345,18 @@ export class ShoppingCart {
 
     // Se responde
     res.status(200).send(respuesta);
+  }
+
+  static async searchProductByBarCodeInternal(
+    query: Array<any>,
+    oneQueryOneResponse: boolean = false
+  ) {
+    return await DynamoSrv.searchByPk(
+      ShoppingCart.getTableDescPrimary(),
+      query,
+      1,
+      null,
+      oneQueryOneResponse
+    );
   }
 }

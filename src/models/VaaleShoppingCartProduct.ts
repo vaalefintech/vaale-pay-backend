@@ -5,5 +5,5 @@ export interface VaaleShoppingCartProduct {
   quantity: number;
   updated?: number;
   delete?: boolean;
-  uuid?: string;
+  originalMarketId?: string;
 }

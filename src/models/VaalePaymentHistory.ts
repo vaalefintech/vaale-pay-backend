@@ -8,6 +8,6 @@ export interface VaalePaymentHistory {
   total?: number;
   taxes?: number;
   marketId?: string;
-  paymentMethod: VaalePaymentMethod;
-  products: Array<VaaleShoppingCartDetail>;
+  cardId?: string;
+  products?: Array<VaaleShoppingCartDetail>;
 }

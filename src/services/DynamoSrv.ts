@@ -302,6 +302,7 @@ export class DynamoSrv {
       DynamoSrv.checkErrors(response);
       return response;
     } catch (err: any) {
+      console.log(err);
       throw new InesperadoException(err.message);
     }
   }
