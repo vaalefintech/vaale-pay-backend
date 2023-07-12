@@ -169,7 +169,25 @@ export class ShoppingCart {
     }
     currentShoppingCart.taxes += taxes;
 
-    
+    const promesas = [];
+
+    // Se crea el encabezado de la compra
+    //TODO esto sí o sí debe ir en una transacción...
+    promesas.push(
+      DynamoSrv.updateInsertDelete(PaymentsSrv.getTableDescPrimaryUUID(), [
+        currentShoppingCart,
+      ])
+    );
+    // Se persiste el detalle de cada producto
+    promesas.push(
+      DynamoSrv.insertTable(ShoppingCart.getTableDescUpdateDone(), products)
+    );
+    // Se borra el carrito de compras actual
+    promesas.push(
+      DynamoSrv.deleteByPk(ShoppingCart.getTableDescUpdate(), originalProducts)
+    );
+
+    await Promise.all(promesas);
 
     respuesta.body = {
       cuenta: currentShoppingCart,
