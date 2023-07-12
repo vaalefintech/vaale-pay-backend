@@ -7,6 +7,9 @@ import { General } from "../utilities/General";
 import { MyError } from "../utilities/MyError";
 import { DynamoSrv, VaaelTableDesc } from "./DynamoSrv";
 import { ProductSrv } from "./ProductsSrv";
+import { v4 as uuidv4 } from "uuid";
+import { VaalePaymentHistory } from "../models/VaalePaymentHistory";
+import { PayMethodSrv } from "./PayMethodSrv";
 
 const DEFAUL_PAGE_SIZE = 20;
 
@@ -34,11 +37,87 @@ export class ShoppingCart {
     const respuesta: VaaleResponse = {
       ok: true,
     };
-
     // Cargar todos los productos
     // Cargar el medio de pago
+    const marketId = General.readParam(req, "marketId", null, true);
+    const marketIdClosed = `${marketId}/closed`;
+    const uuid = `${marketId}/${uuidv4()}`;
+    const userId = General.getUserId(res);
+    const currentShoppingCart: VaalePaymentHistory = General.readParam(
+      req,
+      "payload",
+      null,
+      true
+    );
+    const products = currentShoppingCart.products;
+
+    // Se complementa el payment method
+    const paymentMethod = currentShoppingCart.paymentMethod;
+    const promesaPaymentMethod = PayMethodSrv.searchExactPaymentMethod(
+      userId,
+      paymentMethod.cardId
+    );
+
+    // Se asegura que el market id sea el actual
+    // Se asegura el usuario actual
+    for (let i = 0; i < products.length; i++) {
+      const product = products[i];
+      product.marketId = marketId;
+      product.userId = userId;
+      product.productId = `${marketId}/${product.codebar}`;
+    }
+
+    // Leer de la base de datos el producto en sí por desconfianza de los valores que se envían desde el frontend
+    const reales = await ProductSrv.searchProductByBarCodeInternal(
+      products,
+      true
+    );
+    // Se sobreescriben los valores
+    for (let i = 0; i < products.length; i++) {
+      const producto = products[i];
+      const real = reales[i];
+      if (real == null) {
+        throw new MyError(
+          `El producto ${producto.codebar} no existe en el comercio ${marketId}`,
+          400
+        );
+      }
+      Object.assign(producto, real);
+    }
+
+    let total = 0;
+    let taxes = 0;
+    // Actualizar _shopping_cart_product con:
+    for (let i = 0; i < products.length; i++) {
+      const product = products[i];
+      // 1. marketId + /closed
+      product.marketId = marketIdClosed;
+
+      // 2. Identificador de esta compra uuid
+      product.uuid = uuid;
+      let valor = product.quantity * product.price;
+      if (typeof product.taxes == "number") {
+        const productTaxes = valor * product.taxes;
+        taxes += productTaxes;
+        valor += productTaxes;
+      }
+      total += valor;
+    }
     // Totalizar
-    // Persistir
+    currentShoppingCart.total = total;
+    currentShoppingCart.taxes = taxes;
+
+    const paymentMethodsFound = await promesaPaymentMethod;
+    if (paymentMethodsFound.items.length == 0) {
+      throw new MyError(`El usuario no tiene el método de pago proveído`, 400);
+    }
+    currentShoppingCart.paymentMethod = paymentMethodsFound.items[0];
+
+    // Persistir en transacción
+    // Se persiste como tal el encabezado del pago
+    // Se persiste el detalle de cada producto
+
+    respuesta.body = currentShoppingCart;
 
     res.status(200).send(respuesta);
   }

@@ -44,10 +44,25 @@ resource "aws_dynamodb_table" "vaale_shopping_cart_product_table" {
     type = "S"
   }
 
+  attribute {
+    name = "uuid"
+    type = "S"
+  }
+
   global_secondary_index {
     name               = "UserMarket"
     hash_key           = "userId"
     range_key          = "marketId"
+    write_capacity     = 10
+    read_capacity      = 10
+    projection_type    = "INCLUDE"
+    non_key_attributes = ["productId", "quantity"]
+  }
+
+  global_secondary_index {
+    name               = "UserUuid"
+    hash_key           = "userId"
+    range_key          = "uuid"
     write_capacity     = 10
     read_capacity      = 10
     projection_type    = "INCLUDE"
@@ -88,7 +103,7 @@ resource "aws_dynamodb_table" "vaale_payment_table" {
   read_capacity  = 20
   write_capacity = 20
   hash_key       = "userId"
-  range_key      = "created"
+  range_key      = "uuid"
 
   attribute {
     name = "userId"
@@ -96,7 +111,7 @@ resource "aws_dynamodb_table" "vaale_payment_table" {
   }
 
   attribute {
-    name = "created"
+    name = "uuid"
     type = "S"
   }
 

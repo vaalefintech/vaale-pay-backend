@@ -14,11 +14,30 @@ export class PayMethodSrv {
       rowTypes: { userId: "S" },
     };
   }
+  static getTableDescPrimaryExact(): VaaelTableDesc {
+    return {
+      tableName: `${process.env.ENVIRONMENT}_payment_method`,
+      keys: ["userId", "cardId"],
+      rowTypes: { userId: "S", cardId: "S" },
+    };
+  }
   static getTableDescUpdate(): VaaelTableDesc {
     return {
       tableName: `${process.env.ENVIRONMENT}_payment_method`,
       keys: ["userId", "cardId"],
     };
+  }
+  static async searchExactPaymentMethod(userId: string, cardId: string) {
+    const response = await DynamoSrv.searchByPkSingle(
+      PayMethodSrv.getTableDescPrimaryExact(),
+      {
+        userId,
+        cardId,
+      },
+      1,
+      null
+    );
+    return response;
   }
   static async pagePaymentMethods(req: Request, res: Response, next: Function) {
     const respuesta: VaaleResponse = {
