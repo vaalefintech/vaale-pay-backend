@@ -105,11 +105,18 @@ export class ShoppingCart {
 
     const products = responseProducts.items;
 
-    if (products.length == 0) {
-      throw new MyError(
-        `El usuario no tiene productos en el comercio "${marketId}"`,
-        400
-      );
+    if (!providedUUID) {
+      if (products.length == 0) {
+        throw new MyError(
+          `El usuario no tiene productos en el comercio "${marketId}"`,
+          400
+        );
+      }
+    } else {
+      if (products.length == 0) {
+        res.status(204).send();
+        return;
+      }
     }
 
     // Se guarda la referencia de los productos actuales del carrito de compras...
@@ -175,7 +182,7 @@ export class ShoppingCart {
     if (providedUUID) {
       // Se actualiza
       comandos.push(
-        DynamoSrv.updateByPk(
+        await DynamoSrv.updateByPk(
           PaymentsSrv.getTableDescPrimaryUUID(),
           [currentShoppingCart],
           false
@@ -216,24 +223,28 @@ export class ShoppingCart {
     for (let i = 0; i < comandos.length; i++) {
       const comando = comandos[i];
       const statements = comando.Statements;
-      for (let j = 0; j < statements.length; j++) {
-        const oneStatement = statements[j];
-        // Convert datatypes
-        const parameters = oneStatement.Parameters;
-        const parameters2 = [];
-        const llaves = Object.keys(parameters);
-        for (let k = 0; k < llaves.length; k++) {
-          const llave = llaves[k];
-          const valor = parameters[llave];
-          const transformado = DynamoSrv.encodeItem(valor);
-          parameters2.push(transformado);
+      if (statements) {
+        for (let j = 0; j < statements.length; j++) {
+          const oneStatement = statements[j];
+          // Convert datatypes
+          const parameters = oneStatement.Parameters;
+          const parameters2 = [];
+          const llaves = Object.keys(parameters);
+          for (let k = 0; k < llaves.length; k++) {
+            const llave = llaves[k];
+            const valor = parameters[llave];
+            const transformado = DynamoSrv.encodeItem(valor);
+            parameters2.push(transformado);
+          }
+          oneStatement.Parameters = parameters2;
+          transactions.push(oneStatement);
         }
-        oneStatement.Parameters = parameters2;
-        transactions.push(oneStatement);
+      } else {
+        console.log(`Un statement vacío`);
       }
     }
 
-    console.log(JSON.stringify(transactions, null, 4));
+    //console.log(JSON.stringify(transactions, null, 4));
     await DynamoSrv.runInTransaction(input);
 
     respuesta.body = {

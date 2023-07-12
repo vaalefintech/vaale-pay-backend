@@ -378,7 +378,7 @@ export class DynamoSrv {
     } else if (tipo == "boolean") {
       return { BOOL: item };
     } else if (tipo == "number") {
-      return { N: item };
+      return { N: `${item}` };
     }
     throw new MyError(`No se soporta el tipo de dato "${tipo}"`, 500);
   }
