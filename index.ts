@@ -63,12 +63,6 @@ app.post(`${process.env.PREFIX_PATH}/api/payment_method/page`, [
 ]);
 
 // Convert current shopping cart into history
-app.post(`${process.env.PREFIX_PATH}/api/shopping_cart/close`, [
-  commonHeaders,
-  checkAuthenticated,
-  express.json(),
-  handleErrorsDecorator(ShoppingCart.close),
-]);
 app.post(`${process.env.PREFIX_PATH}/api/shopping_cart/close_paging`, [
   commonHeaders,
   checkAuthenticated,
