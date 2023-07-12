@@ -13,6 +13,13 @@ export class PaymentsSrv {
       rowTypes: { userId: "S" },
     };
   }
+  static getTableDescPrimaryUUID(): VaaelTableDesc {
+    return {
+      tableName: `${process.env.ENVIRONMENT}_payment`,
+      keys: ["userId", "uuid"],
+      rowTypes: { userId: "S", uuid: "S" },
+    };
+  }
   static getTableDescUpdateDone(): VaaelTableDesc {
     return {
       tableName: `${process.env.ENVIRONMENT}_shopping_cart_done_product`,

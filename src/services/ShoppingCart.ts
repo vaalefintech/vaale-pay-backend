@@ -49,24 +49,65 @@ export class ShoppingCart {
     const userId = General.getUserId(res);
     const marketId = General.readParam(req, "marketId", null, true);
     let uuid = General.readParam(req, "uuid", null, false);
+    let providedUUID = true;
     if (uuid == null) {
+      providedUUID = false;
       uuid = `${marketId}/${uuidv4()}`;
     }
-    const response = await DynamoSrv.searchByPkSingle(
-      ShoppingCart.getTableDescSecondary(),
-      {
-        userId,
-        marketId,
-      },
-      size,
-      null
+    const promesasIniciales = [];
+
+    // Se buscan los productos del carito de compras
+    promesasIniciales.push(
+      DynamoSrv.searchByPkSingle(
+        ShoppingCart.getTableDescSecondary(),
+        {
+          userId,
+          marketId,
+        },
+        size,
+        null
+      )
     );
 
-    const products = response.items;
+    // Se busca la cuenta que se va a cerrar
+    let currentShoppingCart: VaalePaymentHistory = {
+      userId,
+      uuid,
+      marketId,
+      total: 0,
+      taxes: 0,
+    };
+    if (providedUUID) {
+      // Buscarlo para totalizar
+      promesasIniciales.push(
+        DynamoSrv.searchByPkSingle(
+          PaymentsSrv.getTableDescPrimaryUUID(),
+          {
+            userId,
+            uuid,
+          },
+          1,
+          null
+        )
+      );
+    }
+
+    const respuestaPromesasIniciales = await Promise.all(promesasIniciales);
+    const responseProducts = respuestaPromesasIniciales[0];
+    const responsePayment = respuestaPromesasIniciales[1];
+
+    if (providedUUID) {
+      if (responsePayment.items.length == 0) {
+        throw new MyError(`Petición incorrecta con uuid "${uuid}"`, 400);
+      }
+      currentShoppingCart = responsePayment.items[0];
+    }
+
+    const products = responseProducts.items;
 
     if (products.length == 0) {
       throw new MyError(
-        `El usuario no tiene productos en el comercio ${marketId}`,
+        `El usuario no tiene productos en el comercio "${marketId}"`,
         400
       );
     }
@@ -96,7 +137,7 @@ export class ShoppingCart {
       const real = reales[i];
       if (real == null) {
         throw new MyError(
-          `El producto ${producto.codebar} no existe en el comercio ${marketId}`,
+          `El producto ${producto.codebar} no existe en el comercio "${marketId}"`,
           400
         );
       }
@@ -119,8 +160,21 @@ export class ShoppingCart {
       }
       total += valor;
     }
+    if (!(typeof currentShoppingCart.total == "number")) {
+      currentShoppingCart.total = 0;
+    }
+    currentShoppingCart.total += total;
+    if (!(typeof currentShoppingCart.taxes == "number")) {
+      currentShoppingCart.taxes = 0;
+    }
+    currentShoppingCart.taxes += taxes;
 
-    respuesta.body = products;
+    
+
+    respuesta.body = {
+      cuenta: currentShoppingCart,
+      products,
+    };
 
     res.status(200).send(respuesta);
   }

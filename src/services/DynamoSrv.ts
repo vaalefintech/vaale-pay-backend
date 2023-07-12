@@ -235,7 +235,9 @@ export class DynamoSrv {
       const command = new ExecuteStatementCommand(exploded);
 
       const client = DynamoSrv.getClient();
+      //console.log(JSON.stringify(command, null, 4));
       const response = await client.docClient.send(command);
+      //console.log(JSON.stringify(response, null, 4));
       const items = DynamoSrv.checkError(response);
       return items;
     } catch (err: any) {
