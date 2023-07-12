@@ -31,6 +31,14 @@ const authParams = {
 app.use(auth(authParams));
 
 // page payment history
+app.post(`${process.env.PREFIX_PATH}/api/payment_history/detail`, [
+  commonHeaders,
+  checkAuthenticated,
+  express.json(),
+  handleErrorsDecorator(PaymentsSrv.pagePaymentDetail),
+]);
+
+// page payment history
 app.post(`${process.env.PREFIX_PATH}/api/payment_history/page`, [
   commonHeaders,
   checkAuthenticated,
