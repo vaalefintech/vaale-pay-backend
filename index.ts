@@ -69,6 +69,12 @@ app.post(`${process.env.PREFIX_PATH}/api/shopping_cart/close`, [
   express.json(),
   handleErrorsDecorator(ShoppingCart.close),
 ]);
+app.post(`${process.env.PREFIX_PATH}/api/shopping_cart/close_paging`, [
+  commonHeaders,
+  checkAuthenticated,
+  express.json(),
+  handleErrorsDecorator(ShoppingCart.closePaging),
+]);
 
 // Page shopping cart products
 app.post(`${process.env.PREFIX_PATH}/api/shopping_cart/page_products`, [

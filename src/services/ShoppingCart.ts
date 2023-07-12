@@ -40,6 +40,90 @@ export class ShoppingCart {
       keys: ["userId", "marketId"],
     };
   }
+  static async closePaging(req: Request, res: Response, next: Function) {
+    const respuesta: VaaleResponse = {
+      ok: true,
+    };
+    // Se debe ir paginando los productos actuales del carrito de compras
+    const size = General.readParam(req, "size", DEFAUL_PAGE_SIZE, false);
+    const userId = General.getUserId(res);
+    const marketId = General.readParam(req, "marketId", null, true);
+    let uuid = General.readParam(req, "uuid", null, false);
+    if (uuid == null) {
+      uuid = `${marketId}/${uuidv4()}`;
+    }
+    const response = await DynamoSrv.searchByPkSingle(
+      ShoppingCart.getTableDescSecondary(),
+      {
+        userId,
+        marketId,
+      },
+      size,
+      null
+    );
+
+    const products = response.items;
+
+    if (products.length == 0) {
+      throw new MyError(
+        `El usuario no tiene productos en el comercio ${marketId}`,
+        400
+      );
+    }
+
+    // Se guarda la referencia de los productos actuales del carrito de compras...
+    const originalProducts = [];
+    const marketIdSize = marketId.length + 1;
+    for (let i = 0; i < products.length; i++) {
+      const product = products[i];
+      product.codebar = product.productId.substring(marketIdSize);
+      originalProducts.push({
+        userId,
+        productId: product.productId,
+      });
+    }
+
+    const promesasLectura = [];
+    promesasLectura.push(
+      ProductSrv.searchProductByBarCodeInternal(products, true)
+    );
+
+    const respuestasPromesasLectura = await Promise.all(promesasLectura);
+    const reales = respuestasPromesasLectura[0];
+    // Se completan los productos
+    for (let i = 0; i < products.length; i++) {
+      const producto = products[i];
+      const real = reales[i];
+      if (real == null) {
+        throw new MyError(
+          `El producto ${producto.codebar} no existe en el comercio ${marketId}`,
+          400
+        );
+      }
+      Object.assign(producto, real);
+    }
+
+    let total = 0;
+    let taxes = 0;
+    // Actualizar _shopping_cart_product con:
+    for (let i = 0; i < products.length; i++) {
+      const product = products[i];
+      product.marketId = uuid;
+      product.originalMarketId = marketId;
+      product.productId = `${uuid}/${product.codebar}`;
+      let valor = product.quantity * product.price;
+      if (typeof product.taxes == "number") {
+        const productTaxes = valor * product.taxes;
+        taxes += productTaxes;
+        valor += productTaxes;
+      }
+      total += valor;
+    }
+
+    respuesta.body = products;
+
+    res.status(200).send(respuesta);
+  }
   static async close(req: Request, res: Response, next: Function) {
     const respuesta: VaaleResponse = {
       ok: true,
@@ -47,7 +131,6 @@ export class ShoppingCart {
     // Cargar todos los productos
     // Cargar el medio de pago
     const marketId = General.readParam(req, "marketId", null, true);
-    const marketIdClosed = `${marketId}/closed`;
     const uuid = `${marketId}/${uuidv4()}`;
     const userId = General.getUserId(res);
     const currentShoppingCart: VaalePaymentHistory = General.readParam(
