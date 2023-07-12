@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { VaalePaymentMethod } from "../models/VaalePaymentMethod";
 import { VaaleResponse } from "../models/VaaleResponse";
 import { General } from "../utilities/General";
 import { DynamoSrv, VaaelTableDesc } from "./DynamoSrv";
@@ -11,6 +12,12 @@ export class PayMethodSrv {
       tableName: `${process.env.ENVIRONMENT}_payment_method`,
       keys: ["userId"],
       rowTypes: { userId: "S" },
+    };
+  }
+  static getTableDescUpdate(): VaaelTableDesc {
+    return {
+      tableName: `${process.env.ENVIRONMENT}_payment_method`,
+      keys: ["userId", "cardId"],
     };
   }
   static async pagePaymentMethods(req: Request, res: Response, next: Function) {
@@ -43,6 +50,19 @@ export class PayMethodSrv {
     const respuesta: VaaleResponse = {
       ok: true,
     };
+    // Se leen los parámetros
+    const paymentMethod: VaalePaymentMethod = General.readParam(
+      req,
+      "payload",
+      null,
+      true
+    );
+    paymentMethod.userId = General.getUserId(res);
+    // Se pide actualizar
+    await DynamoSrv.updateInsertDelete(PayMethodSrv.getTableDescUpdate(), [
+      paymentMethod,
+    ]);
+
     res.status(200).send(respuesta);
   }
 }
