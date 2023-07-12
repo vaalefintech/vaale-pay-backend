@@ -2,6 +2,7 @@ import { InesperadoException, MyError } from "../utilities/MyError";
 import {
   DynamoDBClient,
   ExecuteStatementCommand,
+  ExecuteTransactionCommand,
 } from "@aws-sdk/client-dynamodb";
 import {
   DynamoDBDocumentClient,
@@ -43,6 +44,12 @@ export class DynamoSrv {
       const rowKey = DynamoSrv.getCompundId(tableDesc, row);
       response[rowKey] = row;
     }
+    return response;
+  }
+  static async runInTransaction(input: any) {
+    const command = new ExecuteTransactionCommand(input);
+    const client = DynamoSrv.getClient();
+    const response = await client.docClient.send(command);
     return response;
   }
   static async updateInsertDelete(
@@ -136,10 +143,14 @@ export class DynamoSrv {
       Parameters: values,
     };
   }
-  static async updateByPk(tableDesc: VaaelTableDesc, rows: Array<any>) {
+  static async updateByPk(
+    tableDesc: VaaelTableDesc,
+    rows: Array<any>,
+    autoExecute = true
+  ) {
     try {
       const AHORA = new Date().getTime();
-      const command = new BatchExecuteStatementCommand({
+      const statements = {
         Statements: rows.map((row) => {
           row.updated = AHORA;
           const brokedObject = DynamoSrv.filterObject(row, tableDesc.keys);
@@ -170,8 +181,11 @@ export class DynamoSrv {
           //console.log(JSON.stringify(exploded, null, 4));
           return exploded;
         }),
-      });
-
+      };
+      if (autoExecute === false) {
+        return statements;
+      }
+      const command = new BatchExecuteStatementCommand(statements);
       const client = DynamoSrv.getClient();
       const response = await client.docClient.send(command);
       const items = DynamoSrv.checkErrors(response);
@@ -180,9 +194,13 @@ export class DynamoSrv {
       throw new InesperadoException(err.message);
     }
   }
-  static async deleteByPk(tableDesc: VaaelTableDesc, rows: Array<any>) {
+  static async deleteByPk(
+    tableDesc: VaaelTableDesc,
+    rows: Array<any>,
+    autoExecute = true
+  ) {
     try {
-      const command = new BatchExecuteStatementCommand({
+      const statements = {
         Statements: rows.map((row) => {
           const brokedObject = DynamoSrv.filterObject(row, tableDesc.keys);
           const exploded: any = DynamoSrv.explodeObject(
@@ -197,8 +215,11 @@ export class DynamoSrv {
           //console.log(JSON.stringify(exploded, null, 4));
           return exploded;
         }),
-      });
-
+      };
+      if (autoExecute == false) {
+        return statements;
+      }
+      const command = new BatchExecuteStatementCommand(statements);
       const client = DynamoSrv.getClient();
       const response = await client.docClient.send(command);
       const items = DynamoSrv.checkErrors(response);
@@ -280,10 +301,14 @@ export class DynamoSrv {
       throw new InesperadoException(err.message);
     }
   }
-  static async insertTable(tableDesc: VaaelTableDesc, rows: Array<any>) {
+  static async insertTable(
+    tableDesc: VaaelTableDesc,
+    rows: Array<any>,
+    autoExecute = true
+  ) {
     try {
       const AHORA = new Date().getTime();
-      const command = new BatchExecuteStatementCommand({
+      const statements = {
         Statements: rows.map((row) => {
           row.updated = AHORA;
           const exploded = DynamoSrv.explodeObject(
@@ -297,8 +322,11 @@ export class DynamoSrv {
           //console.log(JSON.stringify(exploded, null, 4));
           return exploded;
         }),
-      });
-
+      };
+      if (autoExecute === false) {
+        return statements;
+      }
+      const command = new BatchExecuteStatementCommand(statements);
       const client = DynamoSrv.getClient();
       const response = await client.docClient.send(command);
       DynamoSrv.checkErrors(response);
@@ -340,6 +368,20 @@ export class DynamoSrv {
     }
     return realResponse;
   }
+  static encodeItem(item: any) {
+    const tipo = typeof item;
+    if (item === null) {
+      return { NULL: true };
+    }
+    if (tipo == "string") {
+      return { S: item };
+    } else if (tipo == "boolean") {
+      return { BOOL: item };
+    } else if (tipo == "number") {
+      return { N: item };
+    }
+    throw new MyError(`No se soporta el tipo de dato "${tipo}"`, 500);
+  }
   static decodeItem(item: any) {
     const keys = Object.keys(item);
     const response: { [key: string]: any } = {};
@@ -351,7 +393,7 @@ export class DynamoSrv {
       } else if ("N" in rawValue) {
         response[key] = parseFloat(rawValue["N"]);
       } else {
-        response[key] = "codificar por favor";
+        throw new MyError(`No se soporta el tipo de dato "${rawValue}"`, 500);
       }
       // TODO seguir con los demás tipos, por ejemplo B para boolean
     }

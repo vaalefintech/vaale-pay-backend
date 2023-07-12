@@ -169,25 +169,72 @@ export class ShoppingCart {
     }
     currentShoppingCart.taxes += taxes;
 
-    const promesas = [];
+    const comandos = [];
 
     // Se crea el encabezado de la compra
-    //TODO esto sí o sí debe ir en una transacción...
-    promesas.push(
-      DynamoSrv.updateInsertDelete(PaymentsSrv.getTableDescPrimaryUUID(), [
-        currentShoppingCart,
-      ])
-    );
+    if (providedUUID) {
+      // Se actualiza
+      comandos.push(
+        DynamoSrv.updateByPk(
+          PaymentsSrv.getTableDescPrimaryUUID(),
+          [currentShoppingCart],
+          false
+        )
+      );
+    } else {
+      // Se crea
+      comandos.push(
+        await DynamoSrv.insertTable(
+          PaymentsSrv.getTableDescPrimaryUUID(),
+          [currentShoppingCart],
+          false
+        )
+      );
+    }
     // Se persiste el detalle de cada producto
-    promesas.push(
-      DynamoSrv.insertTable(ShoppingCart.getTableDescUpdateDone(), products)
+    comandos.push(
+      await DynamoSrv.insertTable(
+        ShoppingCart.getTableDescUpdateDone(),
+        products,
+        false
+      )
     );
     // Se borra el carrito de compras actual
-    promesas.push(
-      DynamoSrv.deleteByPk(ShoppingCart.getTableDescUpdate(), originalProducts)
+    comandos.push(
+      await DynamoSrv.deleteByPk(
+        ShoppingCart.getTableDescUpdate(),
+        originalProducts,
+        false
+      )
     );
 
-    await Promise.all(promesas);
+    const transactions: Array<any> = [];
+    const input = {
+      TransactStatements: transactions,
+    };
+
+    for (let i = 0; i < comandos.length; i++) {
+      const comando = comandos[i];
+      const statements = comando.Statements;
+      for (let j = 0; j < statements.length; j++) {
+        const oneStatement = statements[j];
+        // Convert datatypes
+        const parameters = oneStatement.Parameters;
+        const parameters2 = [];
+        const llaves = Object.keys(parameters);
+        for (let k = 0; k < llaves.length; k++) {
+          const llave = llaves[k];
+          const valor = parameters[llave];
+          const transformado = DynamoSrv.encodeItem(valor);
+          parameters2.push(transformado);
+        }
+        oneStatement.Parameters = parameters2;
+        transactions.push(oneStatement);
+      }
+    }
+
+    console.log(JSON.stringify(transactions, null, 4));
+    await DynamoSrv.runInTransaction(input);
 
     respuesta.body = {
       cuenta: currentShoppingCart,
