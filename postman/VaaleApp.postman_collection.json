@@ -177,7 +177,7 @@
 			"response": []
 		},
 		{
-			"name": "{{host}}/api/shopping_cart/close",
+			"name": "{{host}}/api/shopping_cart/close_paging",
 			"request": {
 				"method": "POST",
 				"header": [
@@ -189,7 +189,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{   \n    \"marketId\": \"carulla5078\",\n    \"payload\": {\n        \"cardId\": \"1234567890\",\n        \"products\": [\n            {\n                \"quantity\": 3,\n                \"codebar\": \"7704269106390\"\n            }\n        ]\n    }\n}",
+					"raw": "{   \n    \"marketId\": \"carulla5078\",\n    \"size\": 1,\n    \"uuid\": \"carulla5078/b3a464f5-b96a-4894-8343-1c1bb7df6ba7\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -197,14 +197,14 @@
 					}
 				},
 				"url": {
-					"raw": "{{host}}/api/shopping_cart/close",
+					"raw": "{{host}}/api/shopping_cart/close_paging",
 					"host": [
 						"{{host}}"
 					],
 					"path": [
 						"api",
 						"shopping_cart",
-						"close"
+						"close_paging"
 					]
 				}
 			},
@@ -257,7 +257,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\"marketId\": \"carulla5078\", \"codebar\": \"7704269106390\", \"quantity\": 3}",
+					"raw": "{\"marketId\": \"carulla5078\", \"codebar\": \"7701001929446\", \"quantity\": 1}",
 					"options": {
 						"raw": {
 							"language": "json"
