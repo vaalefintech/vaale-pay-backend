@@ -7,6 +7,142 @@
 	},
 	"item": [
 		{
+			"name": "{{host}}/api/payment_history/page",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"size\": 20}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/api/payment_history/page",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"payment_history",
+						"page"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{host}}/api/payment_history/detail",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"size\": 20, \"uuid\": \"carulla5078/9f2dbd50-82f6-4a35-bfba-06c95d0ddbe0\"}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/api/payment_history/detail",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"payment_history",
+						"detail"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{host}}/api/payment_method/page",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"size\": 1}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/api/payment_method/page",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"payment_method",
+						"page"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{host}}/api/payment_method/update",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"payload\": {\"cardId\": \"1234567890\", \"expirationDate\": \"07/26\", \"cvv\": \"124\", \"name\": \"EDGAR\", \"lastName\": \"DELGADO\"}}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/api/payment_method/update",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"payment_method",
+						"update"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "{{host}}/api/shopping_cart/remove_product",
 			"request": {
 				"method": "POST",
@@ -35,6 +171,40 @@
 						"api",
 						"shopping_cart",
 						"remove_product"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{host}}/api/shopping_cart/close",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{   \n    \"marketId\": \"carulla5078\",\n    \"payload\": {\n        \"cardId\": \"1234567890\",\n        \"products\": [\n            {\n                \"quantity\": 3,\n                \"codebar\": \"7704269106390\"\n            }\n        ]\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/api/shopping_cart/close",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"shopping_cart",
+						"close"
 					]
 				}
 			},
@@ -189,7 +359,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"payload\": [\n        {\n            \"marketId\": \"carulla5078\",\n            \"codebar\": \"7702024062745\",\n            \"brand\": \"Nestle\",\n            \"label\": \"Milo\",\n            \"detail\": \"550g\",\n            \"price\": 19600\n        },\n        {\n            \"marketId\": \"carulla5078\",\n            \"codebar\": \"7701001929446\",\n            \"brand\": \"Frescampo\",\n            \"label\": \"Maicitos dulces\",\n            \"detail\": \"425g\",\n            \"price\": 5000\n        },\n        {\n            \"marketId\": \"carulla5078\",\n            \"codebar\": \"7704269106390\",\n            \"brand\": \"Bicco\",\n            \"label\": \"Café instantáneo\",\n            \"detail\": \"85g\",\n            \"price\": 3000\n        }\n    ]\n}",
+					"raw": "{\n    \"payload\": [\n        {\n            \"marketId\": \"carulla5078\",\n            \"codebar\": \"7702024062745\",\n            \"brand\": \"Nestle\",\n            \"label\": \"Milo\",\n            \"detail\": \"1000g\",\n            \"price\": 19600,\n            \"taxes\": 0.19\n        },\n        {\n            \"marketId\": \"carulla5078\",\n            \"codebar\": \"7701001929446\",\n            \"brand\": \"Frescampo\",\n            \"label\": \"Maicitos dulces\",\n            \"detail\": \"425g\",\n            \"price\": 5000\n        },\n        {\n            \"marketId\": \"carulla5078\",\n            \"codebar\": \"7704269106390\",\n            \"brand\": \"Bicco\",\n            \"label\": \"Café instantáneo\",\n            \"detail\": \"85g\",\n            \"price\": 3000\n        }\n    ]\n}",
 					"options": {
 						"raw": {
 							"language": "json"
