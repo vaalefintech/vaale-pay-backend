@@ -88,7 +88,7 @@ resource "aws_dynamodb_table" "vaale_payment_table" {
   read_capacity  = 20
   write_capacity = 20
   hash_key       = "userId"
-  range_key      = "timestamp"
+  range_key      = "created"
 
   attribute {
     name = "userId"
@@ -96,7 +96,7 @@ resource "aws_dynamodb_table" "vaale_payment_table" {
   }
 
   attribute {
-    name = "timestamp"
+    name = "created"
     type = "S"
   }
 

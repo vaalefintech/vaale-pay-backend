@@ -214,6 +214,9 @@ export class DynamoSrv {
     nextToken: string | null = null
   ) {
     try {
+      if (!tableDesc.rowTypes) {
+        throw new MyError("Configure rowTypes", 500);
+      }
       const brokedObject = DynamoSrv.filterObject(row, tableDesc.keys);
       const exploded: any = DynamoSrv.explodeObject(
         `SELECT * FROM ${tableDesc.tableName} WHERE `,

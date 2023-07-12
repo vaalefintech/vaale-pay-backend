@@ -30,7 +30,7 @@ const authParams = {
 
 app.use(auth(authParams));
 
-// CRUD payment methods
+// page payment history
 app.post(`${process.env.PREFIX_PATH}/api/payment_history/page`, [
   commonHeaders,
   checkAuthenticated,
