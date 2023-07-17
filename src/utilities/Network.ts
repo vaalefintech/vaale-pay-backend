@@ -64,3 +64,16 @@ export function handleErrorsDecorator(someFun: Function) {
     }
   };
 }
+
+export function cors(req: Request, res: Response, next: Function) {
+  if (req.method == "OPTIONS") {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE");
+    res.setHeader("Access-Control-Allow-Headers", "*");
+    res.setHeader("Access-Control-Max-Age", "3600");
+    res.status(204).send("");
+  } else {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    next();
+  }
+}

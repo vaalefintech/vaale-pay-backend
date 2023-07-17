@@ -5,6 +5,7 @@ const { auth } = require("express-oauth2-jwt-bearer");
 import {
   checkAuthenticated,
   commonHeaders,
+  cors,
   handleErrorsDecorator,
   vaalePing,
 } from "./src/utilities/Network";
@@ -29,6 +30,8 @@ const authParams = {
 };
 
 app.use(auth(authParams));
+
+app.use(cors);
 
 // page payment history
 app.post(`${process.env.PREFIX_PATH}/api/payment_history/detail`, [

@@ -61,7 +61,10 @@ export class DynamoSrv {
     const rowsDelete: Array<any> = [];
     rowsIn.forEach((row) => {
       if ("delete" in row) {
-        rowsDelete.push(row);
+        if (row.delete === true) {
+          rowsDelete.push(row);
+        }
+        delete row.delete;
       }
     });
     const mapIn = DynamoSrv.getCompundMapIds(tableDesc, rowsIn);

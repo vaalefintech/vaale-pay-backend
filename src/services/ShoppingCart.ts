@@ -48,6 +48,7 @@ export class ShoppingCart {
     const size = General.readParam(req, "size", DEFAUL_PAGE_SIZE, false);
     const userId = General.getUserId(res);
     const marketId = General.readParam(req, "marketId", null, true);
+    const cardId = General.readParam(req, "cardId", null, true);
     let uuid = General.readParam(req, "uuid", null, false);
     let providedUUID = true;
     if (uuid == null) {
@@ -74,6 +75,7 @@ export class ShoppingCart {
       userId,
       uuid,
       marketId,
+      cardId,
       total: 0,
       taxes: 0,
     };
@@ -114,7 +116,12 @@ export class ShoppingCart {
       }
     } else {
       if (products.length == 0) {
-        res.status(204).send();
+        respuesta.body = {
+          cuenta: currentShoppingCart,
+          done: true,
+        };
+
+        res.status(200).send(respuesta);
         return;
       }
     }
@@ -249,7 +256,7 @@ export class ShoppingCart {
 
     respuesta.body = {
       cuenta: currentShoppingCart,
-      products,
+      done: products.length == 0,
     };
 
     res.status(200).send(respuesta);
