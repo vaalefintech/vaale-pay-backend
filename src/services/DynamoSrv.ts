@@ -235,7 +235,8 @@ export class DynamoSrv {
     tableDesc: VaaelTableDesc,
     row: any,
     limit: number = 20,
-    nextToken: string | null = null
+    nextToken: string | null = null,
+    suffix: string = ""
   ) {
     try {
       if (!tableDesc.rowTypes) {
@@ -245,7 +246,7 @@ export class DynamoSrv {
       const exploded: any = DynamoSrv.explodeObject(
         `SELECT * FROM ${tableDesc.tableName} WHERE `,
         brokedObject.resIn,
-        "",
+        suffix,
         "",
         "=?",
         " AND ",

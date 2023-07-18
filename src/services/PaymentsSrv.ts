@@ -13,6 +13,13 @@ export class PaymentsSrv {
       rowTypes: { userId: "S" },
     };
   }
+  static getTableDescByDate(): VaaelTableDesc {
+    return {
+      tableName: `${process.env.ENVIRONMENT}_payment.PayByDate`,
+      keys: ["userId"],
+      rowTypes: { userId: "S" },
+    };
+  }
   static getTableDescPrimaryUUID(): VaaelTableDesc {
     return {
       tableName: `${process.env.ENVIRONMENT}_payment`,
@@ -37,12 +44,13 @@ export class PaymentsSrv {
     const userId = General.getUserId(res);
 
     const response = await DynamoSrv.searchByPkSingle(
-      PaymentsSrv.getTableDescPrimary(),
+      PaymentsSrv.getTableDescByDate(),
       {
         userId,
       },
       size,
-      nextToken
+      nextToken,
+      " ORDER BY updated DESC"
     );
 
     respuesta.body = response;

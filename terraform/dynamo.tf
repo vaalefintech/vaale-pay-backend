@@ -149,8 +149,7 @@ resource "aws_dynamodb_table" "vaale_payment_table" {
     range_key          = "updated"
     write_capacity     = 10
     read_capacity      = 10
-    projection_type    = "INCLUDE"
-    non_key_attributes = ["productId", "quantity"]
+    projection_type    = "ALL"
   }
 
   tags = {

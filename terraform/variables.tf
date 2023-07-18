@@ -13,9 +13,9 @@ variable "region" {
   default     = "us-east-1"
 }
 
-# terraform apply -var zipfile="../zips/build_20230717_190712.zip"
+# terraform apply -var zipfile="../zips/build_20230717_205606.zip"
 variable "zipfile" {
   description = "Zip File"
   type        = string
-  default     = "../zips/build_20230717_190712.zip"
+  default     = "../zips/build_20230717_205606.zip"
 }
