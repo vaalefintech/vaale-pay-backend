@@ -19,7 +19,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\"size\": 20}",
+					"raw": "{\"size\": 10}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -53,7 +53,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\"size\": 20, \"uuid\": \"carulla5078/9f2dbd50-82f6-4a35-bfba-06c95d0ddbe0\"}",
+					"raw": "{\"size\": 1, \"uuid\": \"carulla5078/28d16127-4eb9-4677-a8d2-3b2866213228\"}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -87,7 +87,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\"size\": 1}",
+					"raw": "{\"size\": 10}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -121,7 +121,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\"payload\": {\"cardId\": \"1234567890\", \"expirationDate\": \"07/26\", \"cvv\": \"124\", \"name\": \"EDGAR\", \"lastName\": \"DELGADO\"}}",
+					"raw": "{\n    \"payload\": {\n        \"delete\": true,\n        \"cardId\": \"1234567890\",\n        \"expirationDate\": \"07/26\",\n        \"cvv\": \"124\",\n        \"name\": \"EDGAR\",\n        \"lastName\": \"DELGADO\"\n    }\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -359,7 +359,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"payload\": [\n        {\n            \"marketId\": \"carulla5078\",\n            \"codebar\": \"7702024062745\",\n            \"brand\": \"Nestle\",\n            \"label\": \"Milo\",\n            \"detail\": \"1000g\",\n            \"price\": 19600,\n            \"taxes\": 0.19\n        },\n        {\n            \"marketId\": \"carulla5078\",\n            \"codebar\": \"7701001929446\",\n            \"brand\": \"Frescampo\",\n            \"label\": \"Maicitos dulces\",\n            \"detail\": \"425g\",\n            \"price\": 5000\n        },\n        {\n            \"marketId\": \"carulla5078\",\n            \"codebar\": \"7704269106390\",\n            \"brand\": \"Bicco\",\n            \"label\": \"Café instantáneo\",\n            \"detail\": \"85g\",\n            \"price\": 3000\n        }\n    ]\n}",
+					"raw": "{\n    \"payload\": [\n        {\n            \"marketId\": \"carulla5078\",\n            \"codebar\": \"7702024062745\",\n            \"brand\": \"Nestle\",\n            \"label\": \"Milo\",\n            \"detail\": \"1000g\",\n            \"price\": 19600,\n            \"taxes\": 0.19\n        },\n        {\n            \"marketId\": \"carulla5078\",\n            \"codebar\": \"7701001929446\",\n            \"brand\": \"Frescampo\",\n            \"label\": \"Maicitos dulces\",\n            \"detail\": \"425g\",\n            \"price\": 5000,\n            \"taxes\": 0\n        },\n        {\n            \"marketId\": \"carulla5078\",\n            \"codebar\": \"7704269106390\",\n            \"brand\": \"Bicco\",\n            \"label\": \"Café instantáneo\",\n            \"detail\": \"85g\",\n            \"price\": 3000,\n            \"taxes\": 0\n        },\n        {\n            \"marketId\": \"carulla5078\",\n            \"codebar\": \"7701101358139\",\n            \"brand\": \"Zenú\",\n            \"label\": \"Maíz\",\n            \"detail\": \"241g\",\n            \"price\": 4000,\n            \"taxes\": 0\n        }\n    ]\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -381,7 +381,7 @@
 			"response": []
 		},
 		{
-			"name": "https://devid.vaale.co/auth/realms/vaale/protocol/openid-connect/token",
+			"name": "{{keycloak}}/auth/realms/vaale/protocol/openid-connect/token",
 			"request": {
 				"method": "POST",
 				"header": [
@@ -427,12 +427,9 @@
 					]
 				},
 				"url": {
-					"raw": "https://devid.vaale.co/auth/realms/vaale/protocol/openid-connect/token",
-					"protocol": "https",
+					"raw": "{{keycloak}}/auth/realms/vaale/protocol/openid-connect/token",
 					"host": [
-						"devid",
-						"vaale",
-						"co"
+						"{{keycloak}}"
 					],
 					"path": [
 						"auth",
