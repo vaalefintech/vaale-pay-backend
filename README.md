@@ -17,7 +17,9 @@ npm install --global gulp-cli
 ## Generar el binario
 
 Transpilar de typescript a javascript:
-gulp generate_all
+```
+npm run build
+```
 Importante, al final se generará un archivo \*.zip que queda en la carpeta ./zips
 
 ## Desplegar en AWS

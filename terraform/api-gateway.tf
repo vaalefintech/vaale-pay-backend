@@ -73,6 +73,12 @@ resource "aws_apigatewayv2_route" "vaale_lambda_payment_history" {
   target    = "integrations/${aws_apigatewayv2_integration.vaale_lambda.id}"
 }
 
+resource "aws_apigatewayv2_route" "vaale_lambda_geo" {
+  api_id    = aws_apigatewayv2_api.lambda.id
+  route_key = "POST /api/geo/{proxy+}"
+  target    = "integrations/${aws_apigatewayv2_integration.vaale_lambda.id}"
+}
+
 resource "aws_lambda_permission" "api_gw" {
   statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"
