@@ -144,12 +144,65 @@ resource "aws_dynamodb_table" "vaale_payment_table" {
   }
 
   global_secondary_index {
-    name               = "PayByDate"
-    hash_key           = "userId"
-    range_key          = "updated"
-    write_capacity     = 10
-    read_capacity      = 10
-    projection_type    = "ALL"
+    name            = "PayByDate"
+    hash_key        = "userId"
+    range_key       = "updated"
+    write_capacity  = 10
+    read_capacity   = 10
+    projection_type = "ALL"
+  }
+
+  tags = {
+    Environment = var.environment
+  }
+}
+
+resource "aws_dynamodb_table" "vaale_geomarket_table" {
+  name           = "${var.environment}_geomarket"
+  billing_mode   = "PROVISIONED"
+  read_capacity  = 20
+  write_capacity = 10
+  hash_key       = "id"
+  range_key      = "geohash"
+
+  attribute {
+    name = "id"
+    type = "S"
+  }
+
+  attribute {
+    name = "marketId"
+    type = "S"
+  }
+
+  attribute {
+    name = "geohash"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name            = "ByMarketId"
+    hash_key        = "marketId"
+    write_capacity  = 10
+    read_capacity   = 20
+    projection_type = "ALL"
+  }
+
+  tags = {
+    Environment = var.environment
+  }
+}
+
+resource "aws_dynamodb_table" "vaale_market_table" {
+  name           = "${var.environment}_market"
+  billing_mode   = "PROVISIONED"
+  read_capacity  = 20
+  write_capacity = 10
+  hash_key       = "marketId"
+
+  attribute {
+    name = "marketId"
+    type = "S"
   }
 
   tags = {

@@ -13,6 +13,7 @@ import { ProductSrv } from "./src/services/ProductsSrv";
 import { ShoppingCart } from "./src/services/ShoppingCart";
 import { PayMethodSrv } from "./src/services/PayMethodSrv";
 import { PaymentsSrv } from "./src/services/PaymentsSrv";
+import { GeoSrv } from "./src/services/GeoSrv";
 
 dotenv.config();
 
@@ -32,6 +33,20 @@ const authParams = {
 app.use(auth(authParams));
 
 app.use(cors);
+
+app.post(`${process.env.PREFIX_PATH}/api/geo/search`, [
+  commonHeaders,
+  //checkAuthenticated,
+  express.json(),
+  handleErrorsDecorator(GeoSrv.search),
+]);
+
+app.post(`${process.env.PREFIX_PATH}/api/geo/update`, [
+  commonHeaders,
+  checkAuthenticated,
+  express.json(),
+  handleErrorsDecorator(GeoSrv.update),
+]);
 
 // page payment history
 app.post(`${process.env.PREFIX_PATH}/api/payment_history/detail`, [

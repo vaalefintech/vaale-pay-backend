@@ -41,6 +41,74 @@
 			"response": []
 		},
 		{
+			"name": "{{host}}/api/geo/update",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"payload\": [\n        {\n            \"delete\": false,\n            \"id\": \"alhambra4\",\n            \"name\": \"Alhambra IV\",\n            \"address\": \"calle 116 #50a-64\",\n            \"geohashs\": [\n                \"d2g6dxy\",\n                \"d2g6dxw\"\n            ]\n        },\n        {\n            \"delete\": false,\n            \"id\": \"vecino\",\n            \"name\": \"\",\n            \"address\": \"\",\n            \"geohashs\": [\n                \"d2g6dxz\",\n                \"d2g6dxx\"\n            ]\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/api/geo/update",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"geo",
+						"update"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{host}}/api/geo/search",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"payload\": {\n        \"lat\": 4.7000971,\n        \"lon\": -74.0613491\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/api/geo/search",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"geo",
+						"search"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "{{host}}/api/payment_history/detail",
 			"request": {
 				"method": "POST",
