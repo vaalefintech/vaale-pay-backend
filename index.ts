@@ -35,6 +35,13 @@ app.use(auth(authParams));
 
 app.use(cors);
 
+app.post(`${process.env.PREFIX_PATH}/api/wompi/acceptance`, [
+  commonHeaders,
+  //checkAuthenticated,
+  express.json(),
+  handleErrorsDecorator(PaymentsSrv.acceptanceTokenStep),
+]);
+
 app.post(`${process.env.PREFIX_PATH}/api/params/encode`, [
   commonHeaders,
   checkAuthenticated,

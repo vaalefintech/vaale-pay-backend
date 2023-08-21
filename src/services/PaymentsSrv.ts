@@ -1,3 +1,4 @@
+import axios, { AxiosResponse } from "axios";
 import { Request, Response } from "express";
 import { VaaleResponse } from "../models/VaaleResponse";
 import { General } from "../utilities/General";
@@ -85,31 +86,50 @@ export class PaymentsSrv {
   }
 
   // Authorization: Bearer ${process.env.WOMPI_PRI_KEY}
+  /*
+  {
+      "ok": true,
+      "body": {
+          "acceptance_token": "eyJhbGciOiJIUzI1NiJ9.eyJjb250cmFjdF9pZCI6NDEsInBlcm1hbGluayI6Imh0dHBzOi8vd29tcGkuY29tL2Fzc2V0cy9kb3dubG9hZGJsZS9UQy1Vc3Vhcmlvcy1Db2xvbWJpYS5wZGYiLCJmaWxlX2hhc2giOiJiZjcyMmFjZDExYzRjMzQzMTVjMDg1NWIyMmIyOGI5OSIsImppdCI6IjE2OTI2NTA0MTItMTA1NTciLCJlbWFpbCI6IiIsImV4cCI6MTY5MjY1NDAxMn0.CYBMvqHtkdBjrE8HidBrCero1gcQWAu13C4dfXzzVt8",
+          "permalink": "https://wompi.com/assets/downloadble/TC-Usuarios-Colombia.pdf",
+          "type": "END_USER_POLICY"
+      }
+  }
+  */
   static async acceptanceTokenStep(
     req: Request,
     res: Response,
     next: Function
   ) {
-    var url = process.env.WOMPI_URL;
-    const path = "/v1/merchants/";
-    var pubKey = process.env.WOMPI_PUB_KEY;
-
-    var completeUrl = "$url$path$pubKey";
-
-    // Se debe hacer un GET a completeUrl
-    const response = {
-      data: {
-        presigned_acceptance: {
-          acceptance_token: "eyJhbGciOiJIUzI1NiJ9.eyJjb250cmFjdF9pZCIExNzMxZj",
-          permalink:
-            "https://wompi.co/wp-content/uploads/2019/09/TERMINOS-Y-CONDICIONES-DE-USO-USUARIOS-WOMPI.pdf",
-          type: "END_USER_POLICY",
-        },
-      },
+    const respuesta: VaaleResponse = {
+      ok: true,
     };
-
-    // Se debe mostrar al usuario un checkbox con este enlace:
-    // response.data.presigned_acceptance.permalink
+    const url = process.env.WOMPI_URL;
+    const path = "/merchants/";
+    const pubKey = process.env.WOMPI_PUB_KEY;
+    const completeUrl = `${url}${path}${pubKey}`;
+    const options = {};
+    const getResponse: AxiosResponse<any, any> = await new Promise(
+      (resolve, reject) => {
+        axios
+          .get(completeUrl, options)
+          .then((res) => {
+            resolve(res);
+          })
+          .catch((error) => {
+            reject(error);
+          });
+      }
+    );
+    /*
+    console.log(getResponse.data);
+    console.log(`getResponse.status = ${getResponse.status}`);
+    console.log(`getResponse.statusText = ${getResponse.statusText}`);
+    console.log(getResponse.headers);
+    console.log(getResponse.config);
+    */
+    respuesta.body = getResponse.data.data.presigned_acceptance;
+    res.status(200).send(respuesta);
   }
 
   static async cardTokenization(req: Request, res: Response, next: Function) {
