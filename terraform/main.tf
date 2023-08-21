@@ -2,7 +2,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 4.16"
+      version = "~> 5.0"
     }
   }
 
@@ -11,4 +11,9 @@ terraform {
 
 provider "aws" {
   region = var.region
+}
+
+module "secrets-manager" {
+  source  = "terraform-aws-modules/secrets-manager/aws"
+  version = "1.1.1"
 }

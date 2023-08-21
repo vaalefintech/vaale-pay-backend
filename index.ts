@@ -14,6 +14,7 @@ import { ShoppingCart } from "./src/services/ShoppingCart";
 import { PayMethodSrv } from "./src/services/PayMethodSrv";
 import { PaymentsSrv } from "./src/services/PaymentsSrv";
 import { GeoSrv } from "./src/services/GeoSrv";
+import { ParamsSrv } from "./src/services/ParamsSrv";
 
 dotenv.config();
 
@@ -33,6 +34,34 @@ const authParams = {
 app.use(auth(authParams));
 
 app.use(cors);
+
+app.post(`${process.env.PREFIX_PATH}/api/params/encode`, [
+  commonHeaders,
+  checkAuthenticated,
+  express.json(),
+  handleErrorsDecorator(ParamsSrv.encode),
+]);
+
+app.post(`${process.env.PREFIX_PATH}/api/params/decode`, [
+  commonHeaders,
+  checkAuthenticated,
+  express.json(),
+  handleErrorsDecorator(ParamsSrv.decode),
+]);
+
+app.post(`${process.env.PREFIX_PATH}/api/params/getpair`, [
+  commonHeaders,
+  checkAuthenticated,
+  express.json(),
+  handleErrorsDecorator(ParamsSrv.getpair),
+]);
+
+app.post(`${process.env.PREFIX_PATH}/api/params/read`, [
+  commonHeaders,
+  checkAuthenticated,
+  express.json(),
+  handleErrorsDecorator(ParamsSrv.read),
+]);
 
 app.post(`${process.env.PREFIX_PATH}/api/geo/search`, [
   commonHeaders,

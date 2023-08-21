@@ -13,6 +13,12 @@ variable "region" {
   default     = "us-east-1"
 }
 
+variable "account" {
+  description = "Account number"
+  type        = string
+  default     = "060199919132"
+}
+
 # terraform apply -var zipfile="../zips/build_20230819_163235.zip"
 variable "zipfile" {
   description = "Zip File"
