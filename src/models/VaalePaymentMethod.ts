@@ -1,10 +1,12 @@
 export interface VaalePaymentMethod {
-  userId?: string;
   cardId: string;
-  brand: string;
+  userId?: string;
   expirationDate?: string;
   cvv?: string;
   name?: string;
   lastName?: string;
+  status?: string;//wompi
+  token?: string;//wompi
   delete?: boolean;
+  brand?: string;
 }

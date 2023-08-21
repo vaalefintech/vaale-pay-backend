@@ -1,5 +1,6 @@
 import axios, { AxiosResponse } from "axios";
 import { Request, Response } from "express";
+import { VaalePaymentMethod } from "../models/VaalePaymentMethod";
 import { VaaleResponse } from "../models/VaaleResponse";
 import { General } from "../utilities/General";
 import { DynamoSrv, VaaelTableDesc } from "./DynamoSrv";
@@ -85,7 +86,6 @@ export class PaymentsSrv {
     res.status(200).send(respuesta);
   }
 
-  // Authorization: Bearer ${process.env.WOMPI_PRI_KEY}
   /*
   {
       "ok": true,
@@ -121,6 +121,36 @@ export class PaymentsSrv {
           });
       }
     );
+    respuesta.body = getResponse.data.data.presigned_acceptance;
+    res.status(200).send(respuesta);
+  }
+
+  static async queryTransactions(req: Request, res: Response, next: Function) {
+    const respuesta: VaaleResponse = {
+      ok: true,
+    };
+    const url = process.env.WOMPI_URL;
+    const path = "/transactions";
+    const completeUrl = `${url}${path}`;
+    const options = {
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        Accept: "application/json",
+        Authorization: `Bearer ${process.env.WOMPI_PRI_KEY}`,
+      },
+    };
+    const getResponse: AxiosResponse<any, any> = await new Promise(
+      (resolve, reject) => {
+        axios
+          .get(completeUrl, options)
+          .then((res) => {
+            resolve(res);
+          })
+          .catch((error) => {
+            reject(error);
+          });
+      }
+    );
     /*
     console.log(getResponse.data);
     console.log(`getResponse.status = ${getResponse.status}`);
@@ -128,22 +158,100 @@ export class PaymentsSrv {
     console.log(getResponse.headers);
     console.log(getResponse.config);
     */
-    respuesta.body = getResponse.data.data.presigned_acceptance;
+    respuesta.body = getResponse.data;
     res.status(200).send(respuesta);
   }
 
+  // PaymentsSrv.processWompiError(error.response.data.messages)
+  static processWompiError(error: any) {
+    // {"number":["El número de tarjeta es inválido. Luhn check falló."]}
+    let texto = "";
+    const llaves = Object.keys(error);
+    for (let i = 0; i < llaves.length; i++) {
+      const llave = llaves[i];
+      const lista = error[llave];
+      texto += `Errores de "${llave}": ${lista.join(", ")}.`;
+    }
+    return texto;
+  }
+
   static async cardTokenization(req: Request, res: Response, next: Function) {
-    var url = process.env.WOMPI_URL;
-    const path = "/v1/tokens/cards";
-    const payload = {
-      number: "4242424242424242", // Número de tarjeta (como un string, sin espacios)
-      exp_month: "06", // Mes de expiración (como string de 2 dígitos)
-      exp_year: "29", // Año de expiración (como string de 2 dígitos)
-      cvc: "123", // Código de seguridad (como string de 3 o 4 dígitos)
-      card_holder: "Pedro Pérez", // Nombre del tarjeta habiente (string de mínimo 5 caracteres)
+    const respuesta: VaaleResponse = {
+      ok: true,
     };
 
+    const url = process.env.WOMPI_URL;
+    const path = "/tokens/cards";
+    const completeUrl = `${url}${path}`;
+
+    const paymentMethod: VaalePaymentMethod = General.readParam(
+      req,
+      "payload",
+      null,
+      true
+    );
+
+    if (!paymentMethod.expirationDate) {
+      throw new Error("Se requiere la fecha de expiración");
+    }
+    if (!paymentMethod.cvv) {
+      throw new Error("Se requiere el cvv");
+    }
+    if (!paymentMethod.name) {
+      throw new Error("Se requiere el nombre");
+    }
+    const expirationDateTokens = /^([\d]{2})\/([\d]{2})$/.exec(
+      paymentMethod.expirationDate
+    );
+    if (expirationDateTokens == null) {
+      throw new Error("La fecha de expiración debe tener el formato ##/##");
+    }
+    if (/^[\d]{3,4}$/.exec(paymentMethod.cvv) == null) {
+      throw new Error("El cvc debe tener consistir en 3 o 4 digitos");
+    }
+
+    const payload = {
+      number: paymentMethod.cardId,
+      exp_month: expirationDateTokens[1],
+      exp_year: expirationDateTokens[2],
+      cvc: paymentMethod.cvv,
+      card_holder: paymentMethod.name,
+    };
+
+    // Invocar el servicio
+    const options = {
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        Accept: "application/json",
+        Authorization: `Bearer ${process.env.WOMPI_PUB_KEY}`,
+      },
+    };
+
+    const getResponse: AxiosResponse<any, any> = await new Promise(
+      (resolve, reject) => {
+        axios
+          .post(completeUrl, payload, options)
+          .then((res) => {
+            resolve(res);
+          })
+          .catch((error) => {
+            reject(
+              new Error(
+                PaymentsSrv.processWompiError(
+                  error.response.data.error.messages
+                )
+              )
+            );
+          });
+      }
+    );
+
+    // Guardar response.data.id
+    respuesta.body = getResponse.data;
+    res.status(200).send(respuesta);
+
     // Response
+    /*
     const response = {
       status: "CREATED",
       data: {
@@ -159,6 +267,7 @@ export class PaymentsSrv {
         expires_at: "2021-09-05T19:09:30.000Z",
       },
     };
+    */
   }
 
   // Paso 2: Crea una fuente de pago
@@ -173,7 +282,7 @@ export class PaymentsSrv {
     // customer_email
 
     const wompiRoot = process.env.WOMPI_URL;
-    const path = "/v1/payment_sources";
+    const path = "/payment_sources";
     const payload = {
       type: "CARD",
       token: "tok_prod_15_44c5638281if67l04eA63f705bfA5bde",
@@ -233,7 +342,7 @@ export class PaymentsSrv {
 
     const currency = PaymentsSrv.CURRENCY;
     const wompiRoot = process.env.WOMPI_URL;
-    const path = "/v1/transactions";
+    const path = "/transactions";
     const payload = {
       amount_in_cents: amountInCents, // Monto current centavos
       currency: currency, // Moneda
