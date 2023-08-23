@@ -426,9 +426,10 @@ export class PaymentsSrv {
     //
     const transactionId = "2354246";
     const amountInCents = 23570 * 100;
-    const customerEmail = "example@gmail.com";
     const cuotas = 2;
     const paymentSourceId = 3891;
+    
+    const customerEmail = "example@gmail.com";
 
     const currency = PaymentsSrv.CURRENCY;
     const wompiRoot = process.env.WOMPI_URL;

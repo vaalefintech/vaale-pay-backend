@@ -92,7 +92,8 @@ export class PayMethodSrv {
     const realCardId = paymentMethod.cardId;
     if (realCardId.length == 16) {
       paymentMethod.cardId = md5(realCardId);
-      paymentMethod.cardIdTxt = "000000000000" + realCardId.substring(12);
+      paymentMethod.cardIdTxt =
+        realCardId.substring(0, 4) + "00000000" + realCardId.substring(12);
     }
     paymentMethod.cvv = "000";
     paymentMethod.expirationDate = "00/00";
