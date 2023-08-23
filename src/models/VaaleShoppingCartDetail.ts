@@ -12,3 +12,9 @@ export interface WompiStartTransactionData {
   cardId: string;
   email?: string | null;
 }
+
+export interface WompiTransactionResponseData {
+  transactionId: string;
+  createdAt: string;
+  status: string;
+}

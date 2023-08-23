@@ -7,7 +7,11 @@ import { DynamoSrv, VaaelTableDesc } from "./DynamoSrv";
 import { PayMethodSrv } from "./PayMethodSrv";
 import md5 from "md5";
 import { UserSrv } from "./UserSrv";
-import { WompiStartTransactionData } from "../models/VaaleShoppingCartDetail";
+import {
+  WompiStartTransactionData,
+  WompiTransactionResponseData,
+} from "../models/VaaleShoppingCartDetail";
+import sha256 from "crypto-js/sha256";
 
 const DEFAUL_PAGE_SIZE = 20;
 
@@ -421,13 +425,8 @@ export class PaymentsSrv {
     if (!withSha) {
       return cadenaConcatenada;
     }
-    const encondedText = new TextEncoder().encode(cadenaConcatenada);
-    const hashBuffer = await crypto.subtle.digest("SHA-256", encondedText);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray
-      .map((b) => b.toString(16).padStart(2, "0"))
-      .join("");
-    return hashHex;
+    const hashBuffer = sha256(cadenaConcatenada);
+    return hashBuffer.toString();
   }
 
   static async createTransaction(req: Request, res: Response, next: Function) {
@@ -509,21 +508,13 @@ export class PaymentsSrv {
           });
       }
     );
-
-    respuesta.body = getResponse.data;
-    res.status(200).send(respuesta);
-
-    /*
-    const response = {
-      data: {
-        id: 3891,
-        public_data: {
-          type: "CARD",
-        },
-        type: "CARD",
-        status: "AVAILABLE",
-      },
+    const data = getResponse.data.data;
+    const filtered: WompiTransactionResponseData = {
+      transactionId: data.id,
+      createdAt: data.created_at,
+      status: data.status,
     };
-    */
+    respuesta.body = filtered;
+    res.status(200).send(respuesta);
   }
 }
