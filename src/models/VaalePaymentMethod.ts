@@ -11,6 +11,8 @@ export interface VaalePaymentMethod {
   wompiCreated?: string; //wompi
   wompiValidityEndsAt?: string; //wompi
   wompiExpiresAt?: string; //wompi
+  wompiSourceStatus?: string; // wompi
+  wompiSourceId?: string;
   delete?: boolean;
   brand?: string;
 }

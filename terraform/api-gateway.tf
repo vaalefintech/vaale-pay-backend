@@ -79,15 +79,21 @@ resource "aws_apigatewayv2_route" "vaale_lambda_geo" {
   target    = "integrations/${aws_apigatewayv2_integration.vaale_lambda.id}"
 }
 
-resource "aws_apigatewayv2_route" "vaale_lambda_geo" {
+resource "aws_apigatewayv2_route" "vaale_lambda_wompi" {
   api_id    = aws_apigatewayv2_api.lambda.id
   route_key = "POST /api/wompi/{proxy+}"
   target    = "integrations/${aws_apigatewayv2_integration.vaale_lambda.id}"
 }
 
-resource "aws_apigatewayv2_route" "vaale_lambda_geo" {
+resource "aws_apigatewayv2_route" "vaale_lambda_params" {
   api_id    = aws_apigatewayv2_api.lambda.id
   route_key = "POST /api/params/{proxy+}"
+  target    = "integrations/${aws_apigatewayv2_integration.vaale_lambda.id}"
+}
+
+resource "aws_apigatewayv2_route" "vaale_lambda_user" {
+  api_id    = aws_apigatewayv2_api.lambda.id
+  route_key = "POST /api/user/{proxy+}"
   target    = "integrations/${aws_apigatewayv2_integration.vaale_lambda.id}"
 }
 

@@ -74,8 +74,8 @@ EOF
             "dynamodb:*",
           ],
           "Resource" : "*"
-        },
-        {
+        }
+        /*,{
           "Sid" : "SecretsManager",
           "Effect" : "Allow",
           "Action" : [
@@ -85,7 +85,7 @@ EOF
             "secretsmanager:UpdateSecretVersionStage",
           ],
           "Resource" : module.secrets_manager.secret_arn
-        }
+        }*/
       ]
     })
   }

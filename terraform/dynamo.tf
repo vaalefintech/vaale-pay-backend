@@ -209,3 +209,20 @@ resource "aws_dynamodb_table" "vaale_market_table" {
     Environment = var.environment
   }
 }
+
+resource "aws_dynamodb_table" "vaale_user_table" {
+  name           = "${var.environment}_user"
+  billing_mode   = "PROVISIONED"
+  read_capacity  = 20
+  write_capacity = 20
+  hash_key       = "userId"
+
+  attribute {
+    name = "userId"
+    type = "S"
+  }
+
+  tags = {
+    Environment = var.environment
+  }
+}

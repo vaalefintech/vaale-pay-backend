@@ -28,13 +28,24 @@ export class PayMethodSrv {
       keys: ["userId", "cardId"],
     };
   }
+  static async getPaymentMethod(userId: string, cardId: string) {
+    const found = await PayMethodSrv.searchExactPaymentMethod(userId, cardId);
+    if (found.items.length == 0) {
+      return null;
+    }
+    const first: VaalePaymentMethod = found.items[0];
+    return first;
+  }
   static async searchExactPaymentMethod(userId: string, cardId: string) {
-    const cardIdHash = md5(cardId);
+    let cardIdHash = cardId;
+    if (cardId.length == 16) {
+      cardIdHash = md5(cardId);
+    }
     const response = await DynamoSrv.searchByPkSingle(
       PayMethodSrv.getTableDescPrimaryExact(),
       {
         userId,
-        cardIdHash,
+        cardId: cardIdHash,
       },
       1,
       null
@@ -79,8 +90,10 @@ export class PayMethodSrv {
       true
     );
     const realCardId = paymentMethod.cardId;
-    paymentMethod.cardId = md5(realCardId);
-    paymentMethod.cardIdTxt = "000000000000" + realCardId.substring(12);
+    if (realCardId.length == 16) {
+      paymentMethod.cardId = md5(realCardId);
+      paymentMethod.cardIdTxt = "000000000000" + realCardId.substring(12);
+    }
     paymentMethod.cvv = "000";
     paymentMethod.expirationDate = "00/00";
     paymentMethod.userId = General.getUserId(res);

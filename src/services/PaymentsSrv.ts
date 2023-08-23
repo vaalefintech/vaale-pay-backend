@@ -6,6 +6,7 @@ import { General } from "../utilities/General";
 import { DynamoSrv, VaaelTableDesc } from "./DynamoSrv";
 import { PayMethodSrv } from "./PayMethodSrv";
 import md5 from "md5";
+import { UserSrv } from "./UserSrv";
 
 const DEFAUL_PAGE_SIZE = 20;
 
@@ -296,36 +297,106 @@ export class PaymentsSrv {
     res: Response,
     next: Function
   ) {
-    // Recibir:
-    // acceptance_token de paso acceptanceTokenStep()
-    // token de paso cardTokenization()
-    // customer_email
+    const respuesta: VaaleResponse = {
+      ok: true,
+    };
+    const userId = General.getUserId(res);
+    const acceptanceToken: string = General.readParam(
+      req,
+      "acceptanceToken",
+      null,
+      true
+    );
+    const cardId: string = General.readParam(req, "cardId", null, true);
+    let email: string | null = General.readParam(req, "email", null, false);
+    let validatedEmail = "";
+    if (typeof email == "string") {
+      validatedEmail = email;
+    } else {
+      // Busco el usuario actual
 
-    const wompiRoot = process.env.WOMPI_URL;
+      const myUser = await UserSrv.getUserById(userId);
+      if (myUser == null) {
+        throw new Error(
+          "Debe proveer el correo o debe haber configurado el usuario previamente."
+        );
+      } else {
+        if (typeof myUser.email != "string") {
+          throw new Error(
+            "Debe proveer el correo o debe haber asociado un correo al usuario previamente."
+          );
+        } else {
+          validatedEmail = myUser.email;
+        }
+      }
+    }
+    const cardIdHash = md5(cardId);
+    const cardFound = await PayMethodSrv.getPaymentMethod(userId, cardIdHash);
+    if (cardFound == null) {
+      throw new Error("La tarjeta no se encontró");
+    }
+    if (cardFound.wompiStatus != "CREATED") {
+      console.log(JSON.stringify(cardFound, null, 4));
+      throw new Error("La tarjeta se debe tokenizar primero");
+    }
+
+    if (cardFound.wompiSourceStatus == "AVAILABLE") {
+      throw new Error("La tarjeta ya se configuró como fuente de pago");
+    }
+
+    const url = process.env.WOMPI_URL;
     const path = "/payment_sources";
+    const completeUrl = `${url}${path}`;
+
     const payload = {
       type: "CARD",
-      token: "tok_prod_15_44c5638281if67l04eA63f705bfA5bde",
-      customer_email: "pepito_perez@example.com",
-
+      token: cardFound.wompiToken,
+      customer_email: validatedEmail,
       //https://docs.wompi.co/docs/colombia/tokens-de-aceptacion/
-      acceptance_token: "eyJhbGciOiJIUzI1NiJ9.eyJjb250cmFjdF9pZCIExNzMxZj", // TODO guardar en Dynamo como el Card
+      acceptance_token: acceptanceToken, // TODO guardar en Dynamo como el Card
     };
 
-    const response = {
-      data: {
-        id: 3891, // TODO guardar en Dynamo como el Card
-        public_data: {
-          type: "CARD",
-        },
-        type: "CARD",
-        status: "AVAILABLE",
+    const options = {
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        Accept: "application/json",
+        Authorization: `Bearer ${process.env.WOMPI_PRI_KEY}`,
       },
     };
+
+    const getResponse: AxiosResponse<any, any> = await new Promise(
+      (resolve, reject) => {
+        axios
+          .post(completeUrl, payload, options)
+          .then((res) => {
+            resolve(res);
+          })
+          .catch((error) => {
+            reject(
+              new Error(
+                PaymentsSrv.processWompiError(
+                  error.response.data.error.messages
+                )
+              )
+            );
+          });
+      }
+    );
+
+    cardFound.wompiSourceStatus = getResponse.data.data.status;
+    if (cardFound.wompiSourceStatus == "AVAILABLE") {
+      cardFound.wompiSourceId = getResponse.data.data.id;
+    }
+
+    const tableDesc = PayMethodSrv.getTableDescUpdate();
+    await DynamoSrv.updateByPk(tableDesc, [cardFound]);
+
+    respuesta.body = cardFound;
+    res.status(200).send(respuesta);
   }
 
-  //Genera una firma de integridad
-  //https://docs.wompi.co/docs/colombia/widget-checkout-web/#paso-3-genera-una-firma-de-integridad
+  // Genera una firma de integridad
+  // https://docs.wompi.co/docs/colombia/widget-checkout-web/#paso-3-genera-una-firma-de-integridad
   static async generateIntegritySignature(
     transactionRef: string,
     amountInCents: number,
@@ -338,7 +409,6 @@ export class PaymentsSrv {
     Moneda de la transacción: COP
     Secreto de integridad: prod_integrity_Z5mMke9x0k8gpErbDqwrJXMqsI6SFli6
     */
-
     const cadenaConcatenada = `${transactionRef}${amountInCents}${currency}${process.env.WOMPI_INTEGRIDAD}`;
     if (!withSha) {
       return cadenaConcatenada;

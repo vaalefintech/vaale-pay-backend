@@ -15,6 +15,7 @@ import { PayMethodSrv } from "./src/services/PayMethodSrv";
 import { PaymentsSrv } from "./src/services/PaymentsSrv";
 import { GeoSrv } from "./src/services/GeoSrv";
 import { ParamsSrv } from "./src/services/ParamsSrv";
+import { UserSrv } from "./src/services/UserSrv";
 
 dotenv.config();
 
@@ -34,6 +35,20 @@ const authParams = {
 app.use(auth(authParams));
 
 app.use(cors);
+
+app.post(`${process.env.PREFIX_PATH}/api/user/update`, [
+  commonHeaders,
+  checkAuthenticated,
+  express.json(),
+  handleErrorsDecorator(UserSrv.updateCurrentUser),
+]);
+
+app.post(`${process.env.PREFIX_PATH}/api/wompi/createsource`, [
+  commonHeaders,
+  checkAuthenticated,
+  express.json(),
+  handleErrorsDecorator(PaymentsSrv.createPaymentSource),
+]);
 
 app.post(`${process.env.PREFIX_PATH}/api/wompi/tokenize`, [
   commonHeaders,
