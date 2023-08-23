@@ -43,6 +43,13 @@ app.post(`${process.env.PREFIX_PATH}/api/user/update`, [
   handleErrorsDecorator(UserSrv.updateCurrentUser),
 ]);
 
+app.post(`${process.env.PREFIX_PATH}/api/wompi/gettransaction`, [
+  commonHeaders,
+  checkAuthenticated,
+  express.json(),
+  handleErrorsDecorator(PaymentsSrv.queryTransaction),
+]);
+
 app.post(`${process.env.PREFIX_PATH}/api/wompi/createtransaction`, [
   commonHeaders,
   checkAuthenticated,

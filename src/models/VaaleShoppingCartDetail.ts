@@ -16,5 +16,7 @@ export interface WompiStartTransactionData {
 export interface WompiTransactionResponseData {
   transactionId: string;
   createdAt: string;
-  status: string;
+  finalizedAt?: string | null;
+  status: string; // APPROVED | DECLINED | VOIDED | ERROR
+  statusTxt: string;
 }

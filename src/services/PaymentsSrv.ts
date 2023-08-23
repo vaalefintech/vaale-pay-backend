@@ -18,6 +18,12 @@ const DEFAUL_PAGE_SIZE = 20;
 export class PaymentsSrv {
   //PaymentsSrv.CURRENCY
   static CURRENCY = "COP";
+  static WOMPI_STATUS_DESC: { [key: string]: string } = {
+    APPROVED: "Transacción aprobada",
+    DECLINED: "Transacción rechazada",
+    VOIDED: "Transacción anulada", // (sólo aplica para transacciones con tarjeta)
+    ERROR: "Error interno del método de pago respectivo",
+  };
   static getTableDescPrimary(): VaaelTableDesc {
     return {
       tableName: `${process.env.ENVIRONMENT}_payment`,
@@ -143,43 +149,6 @@ export class PaymentsSrv {
       }
     );
     respuesta.body = getResponse.data.data.presigned_acceptance;
-    res.status(200).send(respuesta);
-  }
-
-  static async queryTransactions(req: Request, res: Response, next: Function) {
-    const respuesta: VaaleResponse = {
-      ok: true,
-    };
-    const url = process.env.WOMPI_URL;
-    const path = "/transactions";
-    const completeUrl = `${url}${path}`;
-    const options = {
-      headers: {
-        "Content-Type": "application/json; charset=utf-8",
-        Accept: "application/json",
-        Authorization: `Bearer ${process.env.WOMPI_PRI_KEY}`,
-      },
-    };
-    const getResponse: AxiosResponse<any, any> = await new Promise(
-      (resolve, reject) => {
-        axios
-          .get(completeUrl, options)
-          .then((res) => {
-            resolve(res);
-          })
-          .catch((error) => {
-            reject(error);
-          });
-      }
-    );
-    /*
-    console.log(getResponse.data);
-    console.log(`getResponse.status = ${getResponse.status}`);
-    console.log(`getResponse.statusText = ${getResponse.statusText}`);
-    console.log(getResponse.headers);
-    console.log(getResponse.config);
-    */
-    respuesta.body = getResponse.data;
     res.status(200).send(respuesta);
   }
 
@@ -513,6 +482,57 @@ export class PaymentsSrv {
       transactionId: data.id,
       createdAt: data.created_at,
       status: data.status,
+      statusTxt: PaymentsSrv.WOMPI_STATUS_DESC[data.status],
+    };
+    respuesta.body = filtered;
+    res.status(200).send(respuesta);
+  }
+
+  static async queryTransaction(req: Request, res: Response, next: Function) {
+    const respuesta: VaaleResponse = {
+      ok: true,
+    };
+    const transactionId: string = General.readParam(
+      req,
+      "transactionId",
+      null,
+      true
+    );
+    const url = process.env.WOMPI_URL;
+    const path = `/transactions/${transactionId}`;
+    const completeUrl = `${url}${path}`;
+    const options = {
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        Accept: "application/json",
+        Authorization: `Bearer ${process.env.WOMPI_PRI_KEY}`,
+      },
+    };
+    const getResponse: AxiosResponse<any, any> = await new Promise(
+      (resolve, reject) => {
+        axios
+          .get(completeUrl, options)
+          .then((res) => {
+            resolve(res);
+          })
+          .catch((error) => {
+            reject(
+              new Error(
+                PaymentsSrv.processWompiError(
+                  error.response.data.error.messages
+                )
+              )
+            );
+          });
+      }
+    );
+    const data = getResponse.data.data;
+    const filtered: WompiTransactionResponseData = {
+      transactionId: data.id,
+      createdAt: data.created_at,
+      finalizedAt: data.finalized_at,
+      status: data.status,
+      statusTxt: PaymentsSrv.WOMPI_STATUS_DESC[data.status],
     };
     respuesta.body = filtered;
     res.status(200).send(respuesta);
