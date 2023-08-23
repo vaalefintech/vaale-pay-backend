@@ -16,7 +16,6 @@ import sha256 from "crypto-js/sha256";
 const DEFAUL_PAGE_SIZE = 20;
 
 export class PaymentsSrv {
-  //PaymentsSrv.CURRENCY
   static CURRENCY = "COP";
   static WOMPI_STATUS_DESC: { [key: string]: string } = {
     APPROVED: "Transacción aprobada",
@@ -100,9 +99,19 @@ export class PaymentsSrv {
     res.status(200).send(respuesta);
   }
 
-  // PaymentsSrv.processWompiError(error.response.data.messages)
+  static wompiGetHeaders(isPublic: boolean) {
+    return {
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        Accept: "application/json",
+        Authorization: `Bearer ${
+          isPublic ? process.env.WOMPI_PUB_KEY : process.env.WOMPI_PRI_KEY
+        }`,
+      },
+    };
+  }
+
   static processWompiError(error: any) {
-    // {"number":["El número de tarjeta es inválido. Luhn check falló."]}
     let texto = "";
     const llaves = Object.keys(error);
     for (let i = 0; i < llaves.length; i++) {
@@ -224,13 +233,7 @@ export class PaymentsSrv {
     };
 
     // Invocar el servicio
-    const options = {
-      headers: {
-        "Content-Type": "application/json; charset=utf-8",
-        Accept: "application/json",
-        Authorization: `Bearer ${process.env.WOMPI_PUB_KEY}`,
-      },
-    };
+    const options = PaymentsSrv.wompiGetHeaders(true);
 
     const getResponse: AxiosResponse<any, any> = await new Promise(
       (resolve, reject) => {
@@ -317,7 +320,6 @@ export class PaymentsSrv {
       throw new Error("La tarjeta no se encontró");
     }
     if (cardFound.wompiStatus != "CREATED") {
-      console.log(JSON.stringify(cardFound, null, 4));
       throw new Error("La tarjeta se debe tokenizar primero");
     }
 
@@ -334,16 +336,10 @@ export class PaymentsSrv {
       token: cardFound.wompiToken,
       customer_email: validatedEmail,
       //https://docs.wompi.co/docs/colombia/tokens-de-aceptacion/
-      acceptance_token: acceptanceToken, // TODO guardar en Dynamo como el Card
+      acceptance_token: acceptanceToken,
     };
 
-    const options = {
-      headers: {
-        "Content-Type": "application/json; charset=utf-8",
-        Accept: "application/json",
-        Authorization: `Bearer ${process.env.WOMPI_PRI_KEY}`,
-      },
-    };
+    const options = PaymentsSrv.wompiGetHeaders(false);
 
     const getResponse: AxiosResponse<any, any> = await new Promise(
       (resolve, reject) => {
@@ -367,6 +363,7 @@ export class PaymentsSrv {
     cardFound.wompiSourceStatus = getResponse.data.data.status;
     if (cardFound.wompiSourceStatus == "AVAILABLE") {
       cardFound.wompiSourceId = getResponse.data.data.id;
+      cardFound.acceptanceToken = acceptanceToken;
     }
 
     const tableDesc = PayMethodSrv.getTableDescUpdate();
@@ -451,13 +448,7 @@ export class PaymentsSrv {
       recurrent: true, // Recurrente opcional...
     };
 
-    const options = {
-      headers: {
-        "Content-Type": "application/json; charset=utf-8",
-        Accept: "application/json",
-        Authorization: `Bearer ${process.env.WOMPI_PRI_KEY}`,
-      },
-    };
+    const options = PaymentsSrv.wompiGetHeaders(false);
 
     const getResponse: AxiosResponse<any, any> = await new Promise(
       (resolve, reject) => {
@@ -484,6 +475,9 @@ export class PaymentsSrv {
       status: data.status,
       statusTxt: PaymentsSrv.WOMPI_STATUS_DESC[data.status],
     };
+
+    // TODO se debe guardar y asociar en dynamo
+
     respuesta.body = filtered;
     res.status(200).send(respuesta);
   }
@@ -501,13 +495,7 @@ export class PaymentsSrv {
     const url = process.env.WOMPI_URL;
     const path = `/transactions/${transactionId}`;
     const completeUrl = `${url}${path}`;
-    const options = {
-      headers: {
-        "Content-Type": "application/json; charset=utf-8",
-        Accept: "application/json",
-        Authorization: `Bearer ${process.env.WOMPI_PRI_KEY}`,
-      },
-    };
+    const options = PaymentsSrv.wompiGetHeaders(false);
     const getResponse: AxiosResponse<any, any> = await new Promise(
       (resolve, reject) => {
         axios
@@ -535,6 +523,11 @@ export class PaymentsSrv {
       statusTxt: PaymentsSrv.WOMPI_STATUS_DESC[data.status],
     };
     respuesta.body = filtered;
+
+    // TODO se debe guardar y asociar en dynamo
+
     res.status(200).send(respuesta);
   }
+
+  // TODO https://docs.wompi.co/docs/colombia/eventos
 }
