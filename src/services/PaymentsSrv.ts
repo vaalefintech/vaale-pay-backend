@@ -7,6 +7,7 @@ import { DynamoSrv, VaaelTableDesc } from "./DynamoSrv";
 import { PayMethodSrv } from "./PayMethodSrv";
 import md5 from "md5";
 import { UserSrv } from "./UserSrv";
+import { WompiStartTransactionData } from "../models/VaaleShoppingCartDetail";
 
 const DEFAUL_PAGE_SIZE = 20;
 
@@ -291,6 +292,33 @@ export class PaymentsSrv {
     res.status(200).send(respuesta);
   }
 
+  static async computeUserEmail(
+    email: string | null | undefined,
+    userId: string
+  ): Promise<string> {
+    let validatedEmail = "";
+    if (typeof email == "string") {
+      validatedEmail = email;
+    } else {
+      // Busco el usuario actual
+      const myUser = await UserSrv.getUserById(userId);
+      if (myUser == null) {
+        throw new Error(
+          "Debe proveer el correo o debe haber configurado el usuario previamente."
+        );
+      } else {
+        if (typeof myUser.email != "string") {
+          throw new Error(
+            "Debe proveer el correo o debe haber asociado un correo al usuario previamente."
+          );
+        } else {
+          validatedEmail = myUser.email;
+        }
+      }
+    }
+    return validatedEmail;
+  }
+
   // Paso 2: Crea una fuente de pago
   static async createPaymentSource(
     req: Request,
@@ -309,27 +337,7 @@ export class PaymentsSrv {
     );
     const cardId: string = General.readParam(req, "cardId", null, true);
     let email: string | null = General.readParam(req, "email", null, false);
-    let validatedEmail = "";
-    if (typeof email == "string") {
-      validatedEmail = email;
-    } else {
-      // Busco el usuario actual
-
-      const myUser = await UserSrv.getUserById(userId);
-      if (myUser == null) {
-        throw new Error(
-          "Debe proveer el correo o debe haber configurado el usuario previamente."
-        );
-      } else {
-        if (typeof myUser.email != "string") {
-          throw new Error(
-            "Debe proveer el correo o debe haber asociado un correo al usuario previamente."
-          );
-        } else {
-          validatedEmail = myUser.email;
-        }
-      }
-    }
+    const validatedEmail = await PaymentsSrv.computeUserEmail(email, userId);
     const cardIdHash = md5(cardId);
     const cardFound = await PayMethodSrv.getPaymentMethod(userId, cardIdHash);
     if (cardFound == null) {
@@ -423,34 +431,89 @@ export class PaymentsSrv {
   }
 
   static async createTransaction(req: Request, res: Response, next: Function) {
-    //
-    const transactionId = "2354246";
-    const amountInCents = 23570 * 100;
-    const cuotas = 2;
-    const paymentSourceId = 3891;
-    
-    const customerEmail = "example@gmail.com";
+    const respuesta: VaaleResponse = {
+      ok: true,
+    };
+    const transactionData: WompiStartTransactionData = General.readParam(
+      req,
+      "payload",
+      null,
+      true
+    );
+
+    // buscar con el transactionData.cardId el wompiSourceId
+    const userId = General.getUserId(res);
+    const cardFound = await PayMethodSrv.getPaymentMethod(
+      userId,
+      transactionData.cardId
+    );
+    if (cardFound == null) {
+      throw new Error("La tarjeta no se encontró");
+    }
+
+    const myUser = await UserSrv.getUserById(userId);
+    if (myUser == null) {
+      throw new Error("El usuario no se encontró.");
+    }
+
+    const validatedEmail = await PaymentsSrv.computeUserEmail(
+      transactionData.email,
+      userId
+    );
 
     const currency = PaymentsSrv.CURRENCY;
-    const wompiRoot = process.env.WOMPI_URL;
+    const url = process.env.WOMPI_URL;
     const path = "/transactions";
+    const completeUrl = `${url}${path}`;
+
     const payload = {
-      amount_in_cents: amountInCents, // Monto current centavos
+      amount_in_cents: transactionData.total * 100, // Monto current centavos
       currency: currency, // Moneda
       signature: await PaymentsSrv.generateIntegritySignature(
-        transactionId,
-        amountInCents,
+        transactionData.uuid,
+        transactionData.total * 100,
         currency
       ), //Firma de integridad
-      customer_email: customerEmail, // Email del usuario
+      customer_email: validatedEmail, // Email del usuario
       payment_method: {
-        installments: cuotas, // Número de cuotas si la fuente de pago representa una tarjeta de lo contrario el campo payment_method puede ser ignorado.
+        installments: transactionData.cuotas, // Número de cuotas si la fuente de pago representa una tarjeta de lo contrario el campo payment_method puede ser ignorado.
       },
-      reference: transactionId, // Referencia única de pago
-      payment_source_id: paymentSourceId, // ID de la fuente de pago
+      reference: transactionData.uuid, // Referencia única de pago
+      payment_source_id: cardFound.wompiSourceId, // ID de la fuente de pago
       recurrent: true, // Recurrente opcional...
     };
 
+    const options = {
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        Accept: "application/json",
+        Authorization: `Bearer ${process.env.WOMPI_PRI_KEY}`,
+      },
+    };
+
+    const getResponse: AxiosResponse<any, any> = await new Promise(
+      (resolve, reject) => {
+        axios
+          .post(completeUrl, payload, options)
+          .then((res) => {
+            resolve(res);
+          })
+          .catch((error) => {
+            reject(
+              new Error(
+                PaymentsSrv.processWompiError(
+                  error.response.data.error.messages
+                )
+              )
+            );
+          });
+      }
+    );
+
+    respuesta.body = getResponse.data;
+    res.status(200).send(respuesta);
+
+    /*
     const response = {
       data: {
         id: 3891,
@@ -461,5 +524,6 @@ export class PaymentsSrv {
         status: "AVAILABLE",
       },
     };
+    */
   }
 }
