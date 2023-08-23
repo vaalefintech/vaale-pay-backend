@@ -3,6 +3,7 @@ import { VaalePaymentMethod } from "../models/VaalePaymentMethod";
 import { VaaleResponse } from "../models/VaaleResponse";
 import { General } from "../utilities/General";
 import { DynamoSrv, VaaelTableDesc } from "./DynamoSrv";
+import md5 from "md5";
 
 const DEFAUL_PAGE_SIZE = 20;
 
@@ -28,11 +29,12 @@ export class PayMethodSrv {
     };
   }
   static async searchExactPaymentMethod(userId: string, cardId: string) {
+    const cardIdHash = md5(cardId);
     const response = await DynamoSrv.searchByPkSingle(
       PayMethodSrv.getTableDescPrimaryExact(),
       {
         userId,
-        cardId,
+        cardIdHash,
       },
       1,
       null
@@ -76,6 +78,11 @@ export class PayMethodSrv {
       null,
       true
     );
+    const realCardId = paymentMethod.cardId;
+    paymentMethod.cardId = md5(realCardId);
+    paymentMethod.cardIdTxt = "000000000000" + realCardId.substring(12);
+    paymentMethod.cvv = "000";
+    paymentMethod.expirationDate = "00/00";
     paymentMethod.userId = General.getUserId(res);
     // Se pide actualizar
     await DynamoSrv.updateInsertDelete(PayMethodSrv.getTableDescUpdate(), [

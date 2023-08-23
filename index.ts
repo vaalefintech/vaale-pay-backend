@@ -37,7 +37,7 @@ app.use(cors);
 
 app.post(`${process.env.PREFIX_PATH}/api/wompi/tokenize`, [
   commonHeaders,
-  //checkAuthenticated,
+  checkAuthenticated,
   express.json(),
   handleErrorsDecorator(PaymentsSrv.cardTokenization),
 ]);
@@ -51,7 +51,7 @@ app.post(`${process.env.PREFIX_PATH}/api/wompi/transactions`, [
 
 app.post(`${process.env.PREFIX_PATH}/api/wompi/acceptance`, [
   commonHeaders,
-  //checkAuthenticated,
+  checkAuthenticated,
   express.json(),
   handleErrorsDecorator(PaymentsSrv.acceptanceTokenStep),
 ]);

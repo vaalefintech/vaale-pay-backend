@@ -4,6 +4,8 @@ import { VaalePaymentMethod } from "../models/VaalePaymentMethod";
 import { VaaleResponse } from "../models/VaaleResponse";
 import { General } from "../utilities/General";
 import { DynamoSrv, VaaelTableDesc } from "./DynamoSrv";
+import { PayMethodSrv } from "./PayMethodSrv";
+import md5 from "md5";
 
 const DEFAUL_PAGE_SIZE = 20;
 
@@ -86,6 +88,19 @@ export class PaymentsSrv {
     res.status(200).send(respuesta);
   }
 
+  // PaymentsSrv.processWompiError(error.response.data.messages)
+  static processWompiError(error: any) {
+    // {"number":["El número de tarjeta es inválido. Luhn check falló."]}
+    let texto = "";
+    const llaves = Object.keys(error);
+    for (let i = 0; i < llaves.length; i++) {
+      const llave = llaves[i];
+      const lista = error[llave];
+      texto += `Errores de "${llave}": ${lista.join(", ")}.`;
+    }
+    return texto;
+  }
+
   /*
   {
       "ok": true,
@@ -162,19 +177,6 @@ export class PaymentsSrv {
     res.status(200).send(respuesta);
   }
 
-  // PaymentsSrv.processWompiError(error.response.data.messages)
-  static processWompiError(error: any) {
-    // {"number":["El número de tarjeta es inválido. Luhn check falló."]}
-    let texto = "";
-    const llaves = Object.keys(error);
-    for (let i = 0; i < llaves.length; i++) {
-      const llave = llaves[i];
-      const lista = error[llave];
-      texto += `Errores de "${llave}": ${lista.join(", ")}.`;
-    }
-    return texto;
-  }
-
   static async cardTokenization(req: Request, res: Response, next: Function) {
     const respuesta: VaaleResponse = {
       ok: true,
@@ -195,7 +197,7 @@ export class PaymentsSrv {
       throw new Error("Se requiere la fecha de expiración");
     }
     if (!paymentMethod.cvv) {
-      throw new Error("Se requiere el cvv");
+      throw new Error("Se requiere el cvv/cvc");
     }
     if (!paymentMethod.name) {
       throw new Error("Se requiere el nombre");
@@ -207,7 +209,35 @@ export class PaymentsSrv {
       throw new Error("La fecha de expiración debe tener el formato ##/##");
     }
     if (/^[\d]{3,4}$/.exec(paymentMethod.cvv) == null) {
-      throw new Error("El cvc debe tener consistir en 3 o 4 digitos");
+      throw new Error("El cvv/cvc debe tener consistir en 3 o 4 digitos");
+    }
+
+    // Leer la tarjeta
+    const userId = General.getUserId(res);
+    const cardId = paymentMethod.cardId;
+    const cardIdHash = md5(cardId);
+    const cardUpdate: any = {
+      userId,
+      cardId: cardIdHash,
+    };
+
+    const tableDesc = PayMethodSrv.getTableDescUpdate();
+    const founds = await DynamoSrv.searchByPk(
+      tableDesc,
+      [cardUpdate],
+      1,
+      null,
+      true
+    );
+    const found = founds[0];
+    if (found == null) {
+      throw new Error(
+        "La tarjeta no se puede tokenizar porque no está creada para el usuario"
+      );
+    }
+
+    if (found.wompiStatus == "CREATED") {
+      throw new Error("La tarjeta no necesita ser tokenizada");
     }
 
     const payload = {
@@ -246,28 +276,18 @@ export class PaymentsSrv {
       }
     );
 
-    // Guardar response.data.id
-    respuesta.body = getResponse.data;
-    res.status(200).send(respuesta);
+    found.wompiStatus = getResponse.data.status;
+    if (found.wompiStatus == "CREATED") {
+      found.wompiToken = getResponse.data.data.id;
+      found.wompiCreated = getResponse.data.data.created_at;
+      found.wompiValidityEndsAt = getResponse.data.data.validity_ends_at;
+      found.wompiExpiresAt = getResponse.data.data.expires_at;
+    }
 
-    // Response
-    /*
-    const response = {
-      status: "CREATED",
-      data: {
-        id: "tok_prod_15_44c5638281if67l04eA63f705bfA5bde", // TODO guardar en Dynamo como el Card
-        created_at: "2020-09-07T19:09:31.585+00:00",
-        brand: "VISA",
-        name: "VISA-4242",
-        last_four: "4242",
-        bin: "538696",
-        exp_year: "29",
-        exp_month: "06",
-        card_holder: "Pedro Pérez",
-        expires_at: "2021-09-05T19:09:30.000Z",
-      },
-    };
-    */
+    await DynamoSrv.updateByPk(tableDesc, [found]);
+
+    respuesta.body = found;
+    res.status(200).send(respuesta);
   }
 
   // Paso 2: Crea una fuente de pago
