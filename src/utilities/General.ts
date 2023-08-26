@@ -22,7 +22,7 @@ export class General {
       return req.query[name];
     }
     if (errorOnFail) {
-      throw new MyError(`Falta el parámetro "${name}".`, 403);
+      throw new MyError(`Falta el parámetro "${name}".`, 400);
     }
     return pred;
   }

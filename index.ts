@@ -64,18 +64,11 @@ app.post(`${process.env.PREFIX_PATH}/api/wompi/createsource`, [
   handleErrorsDecorator(PaymentsSrv.createPaymentSource),
 ]);
 
-app.post(`${process.env.PREFIX_PATH}/api/wompi/tokenize`, [
-  commonHeaders,
-  checkAuthenticated,
-  express.json(),
-  handleErrorsDecorator(PaymentsSrv.cardTokenization),
-]);
-
 app.post(`${process.env.PREFIX_PATH}/api/wompi/transactions`, [
   commonHeaders,
   //checkAuthenticated,
   express.json(),
-  handleErrorsDecorator(PaymentsSrv.queryTransactions),
+  handleErrorsDecorator(PaymentsSrv.queryTransaction),
 ]);
 
 app.post(`${process.env.PREFIX_PATH}/api/wompi/acceptance`, [
@@ -143,12 +136,12 @@ app.post(`${process.env.PREFIX_PATH}/api/payment_history/page`, [
   handleErrorsDecorator(PaymentsSrv.pagePaymentHistory),
 ]);
 
-// CRUD payment methods
+// Solo sirve para crear y borrar, no se actualiza
 app.post(`${process.env.PREFIX_PATH}/api/payment_method/update`, [
   commonHeaders,
   checkAuthenticated,
   express.json(),
-  handleErrorsDecorator(PayMethodSrv.updatePaymentMethod),
+  handleErrorsDecorator(PaymentsSrv.cardTokenization),
 ]);
 
 // Page the payment methods

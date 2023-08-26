@@ -155,6 +155,7 @@ export class DynamoSrv {
       const AHORA = new Date().getTime();
       const statements = {
         Statements: rows.map((row) => {
+          delete row.delete;
           row.updated = AHORA;
           const brokedObject = DynamoSrv.filterObject(row, tableDesc.keys);
           const exploded1: any = DynamoSrv.explodeObject(
@@ -314,6 +315,7 @@ export class DynamoSrv {
       const AHORA = new Date().getTime();
       const statements = {
         Statements: rows.map((row) => {
+          delete row.delete;
           row.updated = AHORA;
           const exploded = DynamoSrv.explodeObject(
             `INSERT INTO ${tableDesc.tableName} value {`,

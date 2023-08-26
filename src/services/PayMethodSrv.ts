@@ -74,35 +74,4 @@ export class PayMethodSrv {
 
     res.status(200).send(respuesta);
   }
-  static async updatePaymentMethod(
-    req: Request,
-    res: Response,
-    next: Function
-  ) {
-    const respuesta: VaaleResponse = {
-      ok: true,
-    };
-    // Se leen los parámetros
-    const paymentMethod: VaalePaymentMethod = General.readParam(
-      req,
-      "payload",
-      null,
-      true
-    );
-    const realCardId = paymentMethod.cardId;
-    if (realCardId.length == 16) {
-      paymentMethod.cardId = md5(realCardId);
-      paymentMethod.cardIdTxt =
-        realCardId.substring(0, 4) + "00000000" + realCardId.substring(12);
-    }
-    paymentMethod.cvv = "000";
-    paymentMethod.expirationDate = "00/00";
-    paymentMethod.userId = General.getUserId(res);
-    // Se pide actualizar
-    await DynamoSrv.updateInsertDelete(PayMethodSrv.getTableDescUpdate(), [
-      paymentMethod,
-    ]);
-
-    res.status(200).send(respuesta);
-  }
 }

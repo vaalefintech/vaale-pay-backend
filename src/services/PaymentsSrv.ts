@@ -99,6 +99,7 @@ export class PaymentsSrv {
     res.status(200).send(respuesta);
   }
 
+  // WOMPI
   static wompiGetHeaders(isPublic: boolean) {
     return {
       headers: {
@@ -117,9 +118,42 @@ export class PaymentsSrv {
     for (let i = 0; i < llaves.length; i++) {
       const llave = llaves[i];
       const lista = error[llave];
-      texto += `Errores de "${llave}": ${lista.join(", ")}.`;
+      texto += `Wompi: errores de "${llave}": ${lista.join(", ")}.`;
     }
     return texto;
+  }
+
+  static async computeUserEmail(
+    email: string | null | undefined,
+    userId: string
+  ): Promise<string> {
+    let validatedEmail = "";
+    if (typeof email == "string") {
+      validatedEmail = email;
+    } else {
+      // Intento tomarlo diréctamente del userId
+      const userIdTokens = /^(email|google)\/(.+)$/gi.exec(userId);
+      if (userIdTokens != null) {
+        validatedEmail = userIdTokens[2];
+      } else {
+        // Busco el usuario actual
+        const myUser = await UserSrv.getUserById(userId);
+        if (myUser == null) {
+          throw new Error(
+            "Debe proveer el correo o debe haber configurado el usuario previamente."
+          );
+        } else {
+          if (typeof myUser.email != "string") {
+            throw new Error(
+              "Debe proveer el correo o debe haber asociado un correo al usuario previamente."
+            );
+          } else {
+            validatedEmail = myUser.email;
+          }
+        }
+      }
+    }
+    return validatedEmail;
   }
 
   /*
@@ -177,6 +211,25 @@ export class PaymentsSrv {
       true
     );
 
+    // Se eliminan posibles campos en blanco
+    paymentMethod.cardId = paymentMethod.cardId.replace(/\s*/gi, "");
+
+    const userId = General.getUserId(res);
+    const tableDesc = PayMethodSrv.getTableDescUpdate();
+
+    if (paymentMethod.delete === true) {
+      if (paymentMethod.cardId.length == 16) {
+        paymentMethod.cardId = md5(paymentMethod.cardId);
+      }
+      const cardDelete: any = {
+        userId,
+        cardId: paymentMethod.cardId,
+      };
+      await DynamoSrv.deleteByPk(tableDesc, [cardDelete]);
+      res.status(200).send(respuesta);
+      return;
+    }
+
     if (!paymentMethod.expirationDate) {
       throw new Error("Se requiere la fecha de expiración");
     }
@@ -193,11 +246,11 @@ export class PaymentsSrv {
       throw new Error("La fecha de expiración debe tener el formato ##/##");
     }
     if (/^[\d]{3,4}$/.exec(paymentMethod.cvv) == null) {
-      throw new Error("El cvv/cvc debe tener consistir en 3 o 4 digitos");
+      throw new Error("El cvv/cvc debe tener de 3 a 4 digitos");
     }
 
     // Leer la tarjeta
-    const userId = General.getUserId(res);
+
     const cardId = paymentMethod.cardId;
     const cardIdHash = md5(cardId);
     const cardUpdate: any = {
@@ -205,7 +258,6 @@ export class PaymentsSrv {
       cardId: cardIdHash,
     };
 
-    const tableDesc = PayMethodSrv.getTableDescUpdate();
     const founds = await DynamoSrv.searchByPk(
       tableDesc,
       [cardUpdate],
@@ -214,14 +266,10 @@ export class PaymentsSrv {
       true
     );
     const found = founds[0];
-    if (found == null) {
+    if (found !== null) {
       throw new Error(
-        "La tarjeta no se puede tokenizar porque no está creada para el usuario"
+        "Ya existe una tarjeta asociada al usuario con el mismo número"
       );
-    }
-
-    if (found.wompiStatus == "CREATED") {
-      throw new Error("La tarjeta no necesita ser tokenizada");
     }
 
     const payload = {
@@ -243,6 +291,7 @@ export class PaymentsSrv {
             resolve(res);
           })
           .catch((error) => {
+            // Acá se espera que wompi genere todos los errores
             reject(
               new Error(
                 PaymentsSrv.processWompiError(
@@ -254,45 +303,29 @@ export class PaymentsSrv {
       }
     );
 
-    found.wompiStatus = getResponse.data.status;
-    if (found.wompiStatus == "CREATED") {
-      found.wompiToken = getResponse.data.data.id;
-      found.wompiCreated = getResponse.data.data.created_at;
-      found.wompiValidityEndsAt = getResponse.data.data.validity_ends_at;
-      found.wompiExpiresAt = getResponse.data.data.expires_at;
-    }
+    if (getResponse.data.status == "CREATED") {
+      // Se crea entonces en dynamo ofuscando sus datos
+      const realCardId = paymentMethod.cardId;
+      paymentMethod.cardId = cardIdHash;
+      paymentMethod.cardIdTxt =
+        realCardId.substring(0, 4) + "00000000" + realCardId.substring(12);
+      paymentMethod.cvv = "000";
+      paymentMethod.expirationDate = "00/00";
+      paymentMethod.userId = General.getUserId(res);
+      paymentMethod.wompiToken = getResponse.data.data.id;
+      paymentMethod.wompiCreated = getResponse.data.data.created_at;
+      paymentMethod.wompiValidityEndsAt =
+        getResponse.data.data.validity_ends_at;
+      paymentMethod.wompiExpiresAt = getResponse.data.data.expires_at;
+      paymentMethod.wompiStatus = getResponse.data.status;
 
-    await DynamoSrv.updateByPk(tableDesc, [found]);
-
-    respuesta.body = found;
-    res.status(200).send(respuesta);
-  }
-
-  static async computeUserEmail(
-    email: string | null | undefined,
-    userId: string
-  ): Promise<string> {
-    let validatedEmail = "";
-    if (typeof email == "string") {
-      validatedEmail = email;
+      await DynamoSrv.insertTable(tableDesc, [paymentMethod]);
+      respuesta.body = paymentMethod;
+      res.status(200).send(respuesta);
     } else {
-      // Busco el usuario actual
-      const myUser = await UserSrv.getUserById(userId);
-      if (myUser == null) {
-        throw new Error(
-          "Debe proveer el correo o debe haber configurado el usuario previamente."
-        );
-      } else {
-        if (typeof myUser.email != "string") {
-          throw new Error(
-            "Debe proveer el correo o debe haber asociado un correo al usuario previamente."
-          );
-        } else {
-          validatedEmail = myUser.email;
-        }
-      }
+      // Mensaje de error
+      throw new Error("La tarjeta no se pudo crear");
     }
-    return validatedEmail;
   }
 
   // Paso 2: Crea una fuente de pago
@@ -311,10 +344,13 @@ export class PaymentsSrv {
       null,
       true
     );
-    const cardId: string = General.readParam(req, "cardId", null, true);
-    let email: string | null = General.readParam(req, "email", null, false);
+    const cardId: string = General.readParam(req, "cardId", null, true); //Puede ser el real o el md5
+    let email: string | null = General.readParam(req, "email", null, false); //No es obligatorio si se puede sacar del userId
     const validatedEmail = await PaymentsSrv.computeUserEmail(email, userId);
-    const cardIdHash = md5(cardId);
+    let cardIdHash = cardId;
+    if (cardId.length == 16) {
+      cardIdHash = md5(cardId);
+    }
     const cardFound = await PayMethodSrv.getPaymentMethod(userId, cardIdHash);
     if (cardFound == null) {
       throw new Error("La tarjeta no se encontró");
@@ -324,7 +360,10 @@ export class PaymentsSrv {
     }
 
     if (cardFound.wompiSourceStatus == "AVAILABLE") {
-      throw new Error("La tarjeta ya se configuró como fuente de pago");
+      //throw new Error("La tarjeta ya se configuró como fuente de pago");
+      respuesta.body = cardFound;
+      res.status(200).send(respuesta);
+      return;
     }
 
     const url = process.env.WOMPI_URL;

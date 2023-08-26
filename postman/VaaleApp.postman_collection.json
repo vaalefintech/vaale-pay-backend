@@ -7,6 +7,380 @@
 	},
 	"item": [
 		{
+			"name": "{{host}}/api/wompi/acceptance",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/api/wompi/acceptance",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"wompi",
+						"acceptance"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{host}}/api/user/update",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"payload\": {\n        \"email\": \"info@pais.tv\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/api/user/update",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"user",
+						"update"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{host}}/api/wompi/tokenize",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"payload\": {\n        \"cardId\": \"4242424242424242\",\n        \"expirationDate\": \"07/26\",\n        \"cvv\": \"124\",\n        \"name\": \"Pedro Pérez\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/api/wompi/tokenize",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"wompi",
+						"tokenize"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{host}}/api/wompi/createsource",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"acceptanceToken\": \"eyJhbGciOiJIUzI1NiJ9.eyJjb250cmFjdF9pZCI6NDEsInBlcm1hbGluayI6Imh0dHBzOi8vd29tcGkuY29tL2Fzc2V0cy9kb3dubG9hZGJsZS9UQy1Vc3Vhcmlvcy1Db2xvbWJpYS5wZGYiLCJmaWxlX2hhc2giOiJiZjcyMmFjZDExYzRjMzQzMTVjMDg1NWIyMmIyOGI5OSIsImppdCI6IjE2OTI4MDQwMzYtMzcyNTYiLCJlbWFpbCI6IiIsImV4cCI6MTY5MjgwNzYzNn0.J48FkYYOeE82GdF13wndm-RNxzJxZAEiMHNZw0GlGYI\",\n    \"cardId\": \"4242424242424242\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/api/wompi/createsource",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"wompi",
+						"createsource"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{host}}/api/wompi/createtransaction",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"payload\": {\n        \"uuid\": \"1002\",\n        \"total\": 5000,\n        \"cuotas\": 1,\n        \"cardId\": \"9b8a421bff5f30d20f118185eb6e4523\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/api/wompi/createtransaction",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"wompi",
+						"createtransaction"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{host}}/api/wompi/gettransaction",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"transactionId\": \"139908-1692807284-94271\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/api/wompi/gettransaction",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"wompi",
+						"gettransaction"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{host}}/api/wompi/transactions",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/api/wompi/transactions",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"wompi",
+						"transactions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{host}}/api/params/read",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/api/params/read",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"params",
+						"read"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{host}}/api/params/getpair",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/api/params/getpair",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"params",
+						"getpair"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{host}}/api/params/encode",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"payload\":{\"public\":\"-----BEGIN RSA PUBLIC KEY-----\\nMEgCQQDSi6kylKiOqA+4iEpGOVaes0QqYB30Rsr5ua9pLjSvtJi/8a5XXiPNZxFr\\nD+F751/zMpBvXMnsJcWTO1Rv5Th5AgMBAAE=\\n-----END RSA PUBLIC KEY-----\",\"private\":\"-----BEGIN RSA PRIVATE KEY-----\\nMIIBOQIBAAJBANKLqTKUqI6oD7iISkY5Vp6zRCpgHfRGyvm5r2kuNK+0mL/xrlde\\nI81nEWsP4XvnX/MykG9cyewlxZM7VG/lOHkCAwEAAQJAJzGohan21teiVY/Jg9kY\\nruJgRiMucFLdZi+S39miJTL6g6eemJnSQBIlvtSTBCcahgLn0cECRZOEXiEd65/4\\nAQIhAP/iznqDV3gL7YtwCQvcn9VsFSFsVfMbV829/65xcFUhAiEA0qOufILEzncE\\nOpZBt7ntFmxPVhHII7qxOMN93yNDoFkCIEcjmxvcX/jz9/qIDzvI/narMcS1BcAs\\nneCJLgglaYGBAiBdLbkfLT3gU3fUbumNW7sMg0cpPN57J7gD8z64OcJNqQIgMR+F\\n20hAiNDi46sLfUq7OExKJeJTfiCJPsGEYOKcUNU=\\n-----END RSA PRIVATE KEY-----\",\"in\":\"{\\n    \\\"wompi_pub_key\\\": \\\"pub_test_l8WiTielAOpXzh0wcd4o39zaamNRm0Q4\\\",\\n    \\\"wompi_pri_key\\\": \\\"prv_test_GQQcOip3KQDb1uqmxVto297ZEjA26c85\\\",\\n    \\\"wompi_eventos\\\": \\\"test_events_r7CntB4mcgZzMfd1f2BxTTW5mYd5ic2q\\\",\\n    \\\"wompi_integridad\\\": \\\"test_integrity_edCuEHo0qg2ezuO8e8T90x7UrV6I4yZA\\\"\\n}\"}}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/api/params/encode",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"params",
+						"encode"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "{{host}}/api/params/decode",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"payload\": {\n        \"public\": \"-----BEGIN RSA PUBLIC KEY-----\\nMEgCQQDSi6kylKiOqA+4iEpGOVaes0QqYB30Rsr5ua9pLjSvtJi/8a5XXiPNZxFr\\nD+F751/zMpBvXMnsJcWTO1Rv5Th5AgMBAAE=\\n-----END RSA PUBLIC KEY-----\",\n        \"private\": \"-----BEGIN RSA PRIVATE KEY-----\\nMIIBOQIBAAJBANKLqTKUqI6oD7iISkY5Vp6zRCpgHfRGyvm5r2kuNK+0mL/xrlde\\nI81nEWsP4XvnX/MykG9cyewlxZM7VG/lOHkCAwEAAQJAJzGohan21teiVY/Jg9kY\\nruJgRiMucFLdZi+S39miJTL6g6eemJnSQBIlvtSTBCcahgLn0cECRZOEXiEd65/4\\nAQIhAP/iznqDV3gL7YtwCQvcn9VsFSFsVfMbV829/65xcFUhAiEA0qOufILEzncE\\nOpZBt7ntFmxPVhHII7qxOMN93yNDoFkCIEcjmxvcX/jz9/qIDzvI/narMcS1BcAs\\nneCJLgglaYGBAiBdLbkfLT3gU3fUbumNW7sMg0cpPN57J7gD8z64OcJNqQIgMR+F\\n20hAiNDi46sLfUq7OExKJeJTfiCJPsGEYOKcUNU=\\n-----END RSA PRIVATE KEY-----\",\n        \"in\": \"eyJsbGF2ZSI6InNjQktZUDV5TnU2RVdUdGxSb0x4dFVFNWdXQ0ZpYVRkVStqemxmK2hNaDV4ZnVYY2Ixc0NYSUoxYVFvWDRvY1dCVjZmQ1gvOHkySVIrSG11bHNGZkx3PT0iLCJtZW5zYWplIjoiVTJGc2RHVmtYMTgzZWZtV0VtQWRlalNhWnlqMGhnMnZXcUozbUJxY2ZYR2VYbXl6dmNtQW5SU010dkNZY2ZJSVVPMGxzQTJVbVYrOVdYakw3aW5Nd0djNDl2Z1JKNzJNRHNqaUgvY3d0UW04bVBVcHV2RldZN042U1ZIdFlRZHpRSnVaR1FSa0hJWlBSNUZ6cFlnb3QrOTk3aFdlOUFwU0t5MXJVa0tTRldMbll3bmp4MS9wcjdsc05HR0FMQnBGMEtTQnlqa1pEdEJ2WmhSUlhwTUsrd0tIeUNiSWJueTRkVCs5a3pXS2t4cHpEcEhQOUs4cXc5MzFVbG9wdHhqbWo2S1BTTXNtVW5tME1nYWxJdk54SSsyKytEMzdjb1RZRG5zY0VJSFpVNWFuejFXRDdPSk1NZnZUeDN6UXpNQ3NlOFZCUDk4T01YTGk3Qm0wZ21DaUlqNWU5ZlBhc2R3emZGZnh1V004MWZmVmZJakExaW1oR3doYkpLNC9CdXIwS2NlQ1Q5b29CcERqNGlHZ1h3NHRwZz09In0=\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/api/params/decode",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"params",
+						"decode"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "{{host}}/api/payment_history/page",
 			"request": {
 				"method": "POST",
@@ -53,7 +427,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"payload\": [\n        {\n            \"delete\": false,\n            \"id\": \"alhambra4\",\n            \"name\": \"Alhambra IV\",\n            \"address\": \"calle 116 #50a-64\",\n            \"geohashs\": [\n                \"d2g6dxy\",\n                \"d2g6dxw\"\n            ]\n        },\n        {\n            \"delete\": false,\n            \"id\": \"vecino\",\n            \"name\": \"\",\n            \"address\": \"\",\n            \"geohashs\": [\n                \"d2g6dxz\",\n                \"d2g6dxx\"\n            ]\n        }\n    ]\n}",
+					"raw": "{\n    \"payload\": [\n        {\n            \"delete\": false,\n            \"id\": \"carulla5078\",\n            \"name\": \"Carulla\",\n            \"address\": \"calle 116 #50a-64\",\n            \"geohashs\": [\n                \"d2g6dxy\",\n                \"d2g6dxw\"\n            ]\n        },\n        {\n            \"delete\": false,\n            \"id\": \"vecino\",\n            \"name\": \"El vecino\",\n            \"address\": \"a la vuelta\",\n            \"geohashs\": [\n                \"d2g6dxy\",\n                \"d2g6dxw\",\n\n                \"d2g6dxz\",\n                \"d2g6dxx\"\n            ]\n        }\n    ]\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -189,7 +563,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"payload\": {\n        \"delete\": true,\n        \"cardId\": \"1234567890\",\n        \"expirationDate\": \"07/26\",\n        \"cvv\": \"124\",\n        \"name\": \"EDGAR\",\n        \"lastName\": \"DELGADO\"\n    }\n}",
+					"raw": "{\n    \"payload\": {\n        \"delete\": false,\n        \"cardId\": \"4242424242424242\",\n        \"expirationDate\": \"07/26\",\n        \"cvv\": \"124\",\n        \"name\": \"EDGAR DELGADO L\",\n        \"brand\": \"CardType.visa\"\n    }\n}",
 					"options": {
 						"raw": {
 							"language": "json"
