@@ -21,5 +21,6 @@ export interface WompiTransactionResponseData {
   statusTxt: string;
   email?: string | null;
   paymentId?: string | null;
+  paymentIdN?: string | null;
   created?: number | null;
 }

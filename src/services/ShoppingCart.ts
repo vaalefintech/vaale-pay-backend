@@ -54,7 +54,7 @@ export class ShoppingCart {
       cardId: payment.cardId,
       cuotas: payment.cuotas,
       total: payment.total,
-      uuid: payment.uuid,
+      uuid: payment.uuidn,
       email,
     };
     const respuestaPago = await PaymentsSrv.createTransaction(
@@ -79,6 +79,7 @@ export class ShoppingCart {
     );
     // Se crea el registro de log
     respuestaPago.paymentId = `${payment.userId}/${payment.uuid}`;
+    respuestaPago.paymentIdN = `${payment.userId}/${payment.uuidn}`;
     respuestaPago.created = created;
     comandos.push(
       await DynamoSrv.insertTable(
@@ -89,6 +90,20 @@ export class ShoppingCart {
     );
     await DynamoSrv.myRunTransactionCommands(comandos);
     return payment;
+  }
+  static redefineUUIDN(payment: any) {
+    if (typeof payment.uuidn != "string") {
+      const uuid = payment.uuid;
+      payment.uuidn = `${uuid}_1`;
+    } else {
+      const uuidn = payment.uuidn;
+      const partes = /^([^_]+)_([\d]+)$/.exec(uuidn);
+      if (partes != null) {
+        const uuid = partes[1];
+        const intento = parseInt(partes[2]) + 1;
+        payment.uuidn = `${uuid}_${intento}`;
+      }
+    }
   }
   static async wompiForceTryPay(req: Request, res: Response, next: Function) {
     const respuesta: VaaleResponse = {
@@ -108,12 +123,6 @@ export class ShoppingCart {
       throw new MyError(`Se esperaba un número en cuotas "${cuotas}"`, 400);
     }
     const cardId = General.readParam(req, "cardId", null, false);
-    if (retry == "1" && cardId === null) {
-      throw new MyError(
-        `Para reintentar un pago se debe enviar un cardId`,
-        400
-      );
-    }
 
     // Leo el pago
     const paymentList = await DynamoSrv.searchByPkSingle(
@@ -142,6 +151,7 @@ export class ShoppingCart {
     // Casuistica del pago
     if ([null, undefined, ""].indexOf(payment.wompiStatus) >= 0) {
       // Se intenta hacer el pago por primera vez...
+      ShoppingCart.redefineUUIDN(payment);
       await ShoppingCart.startTransaction(payment, email, userId, created);
       respuesta.body = payment;
     } else if (
@@ -152,14 +162,16 @@ export class ShoppingCart {
       if (["APPROVED"].indexOf(payment.wompiStatus) < 0) {
         // Solo si no está aprovada se mira si se desea reintentar
         if (retry == "1") {
-          payment.cardId = cardId; // Se actualiza el método de pago
+          if (cardId != null) {
+            payment.cardId = cardId; // Se actualiza el método de pago
+          }
           payment.wompiStatus = null;
           payment.wompiStatusTxt = null;
           payment.wompiFinalizedAt = null;
           payment.wompiTransactionId = null;
           payment.wompiCreatedAt = null;
           payment.wompiEmail = null;
-
+          ShoppingCart.redefineUUIDN(payment);
           await ShoppingCart.startTransaction(payment, email, userId, created);
         }
       }

@@ -241,6 +241,11 @@ resource "aws_dynamodb_table" "vaale_payment_log_table" {
   }
 
   attribute {
+    name = "paymentIdN"
+    type = "S"
+  }
+
+  attribute {
     name = "transactionId"
     type = "S"
   }
@@ -254,6 +259,15 @@ resource "aws_dynamodb_table" "vaale_payment_log_table" {
     name            = "ByTransactionId"
     hash_key        = "paymentId"
     range_key       = "transactionId"
+    write_capacity  = 10
+    read_capacity   = 20
+    projection_type = "ALL"
+  }
+
+  global_secondary_index {
+    name            = "ByTry"
+    hash_key        = "paymentId"
+    range_key       = "paymentIdN"
     write_capacity  = 10
     read_capacity   = 20
     projection_type = "ALL"
