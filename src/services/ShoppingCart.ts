@@ -198,6 +198,8 @@ export class ShoppingCart {
         // Se crea el registro de log
         respuestaPago.paymentId = `${payment.userId}/${payment.uuid}`;
         respuestaPago.created = created;
+        respuestaPago.paymentIdN = `${payment.userId}/${payment.uuidn}`;
+        respuestaPago.email = payment.wompiEmail;
         comandos.push(
           await DynamoSrv.insertTable(
             PaymentsSrv.getTablePrimaryPaymentLog(),
