@@ -20,4 +20,6 @@ export interface WompiTransactionResponseData {
   status: string; // APPROVED | DECLINED | VOIDED | ERROR
   statusTxt: string;
   email?: string | null;
+  paymentId?: string | null;
+  created?: number | null;
 }

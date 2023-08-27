@@ -46,4 +46,20 @@ export class General {
       epoch: epochText,
     };
   }
+  static getDayAsContinuosNumberHmmSS(fecha: Date) {
+    const anio = fecha.getUTCFullYear();
+    const mes = fecha.getUTCMonth() + 1;
+    const dia = fecha.getUTCDate();
+    const horas = fecha.getUTCHours(); //00
+    const minutos = fecha.getUTCMinutes(); //00
+    const segundos = fecha.getUTCSeconds(); //00
+    return (
+      segundos +
+      minutos * 100 +
+      horas * 10000 +
+      dia * 1000000 +
+      100000000 * mes +
+      anio * 10000000000
+    );
+  }
 }

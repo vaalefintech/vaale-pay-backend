@@ -22,6 +22,7 @@ export class PaymentsSrv {
     DECLINED: "Transacción rechazada",
     VOIDED: "Transacción anulada", // (sólo aplica para transacciones con tarjeta)
     ERROR: "Error interno del método de pago respectivo",
+    PENDING: "Pendiente",
   };
   static getTableDescPrimary(): VaaelTableDesc {
     return {
@@ -41,6 +42,13 @@ export class PaymentsSrv {
     return {
       tableName: `${process.env.ENVIRONMENT}_payment`,
       keys: ["userId", "uuid"],
+      rowTypes: { userId: "S", uuid: "S" },
+    };
+  }
+  static getTablePrimaryPaymentLog(): VaaelTableDesc {
+    return {
+      tableName: `${process.env.ENVIRONMENT}_payment_log`,
+      keys: ["paymentId", "transactionId"],
       rowTypes: { userId: "S", uuid: "S" },
     };
   }

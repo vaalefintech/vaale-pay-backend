@@ -226,3 +226,40 @@ resource "aws_dynamodb_table" "vaale_user_table" {
     Environment = var.environment
   }
 }
+
+resource "aws_dynamodb_table" "vaale_payment_log_table" {
+  name           = "${var.environment}_payment_log"
+  billing_mode   = "PROVISIONED"
+  read_capacity  = 20
+  write_capacity = 10
+  hash_key       = "paymentId"
+  range_key      = "created"
+
+  attribute {
+    name = "paymentId"
+    type = "S"
+  }
+
+  attribute {
+    name = "transactionId"
+    type = "S"
+  }
+
+  attribute {
+    name = "created"
+    type = "N"
+  }
+
+  global_secondary_index {
+    name            = "ByTransactionId"
+    hash_key        = "paymentId"
+    range_key       = "transactionId"
+    write_capacity  = 10
+    read_capacity   = 20
+    projection_type = "ALL"
+  }
+
+  tags = {
+    Environment = var.environment
+  }
+}

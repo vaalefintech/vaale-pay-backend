@@ -436,4 +436,37 @@ export class DynamoSrv {
       items: realResponse,
     };
   }
+  static async myRunTransactionCommands(comandos: Array<any>) {
+    const transactions: Array<any> = [];
+    const input = {
+      TransactStatements: transactions,
+    };
+
+    for (let i = 0; i < comandos.length; i++) {
+      const comando = comandos[i];
+      const statements = comando.Statements;
+      if (statements) {
+        for (let j = 0; j < statements.length; j++) {
+          const oneStatement = statements[j];
+          // Convert datatypes
+          const parameters = oneStatement.Parameters;
+          const parameters2 = [];
+          const llaves = Object.keys(parameters);
+          for (let k = 0; k < llaves.length; k++) {
+            const llave = llaves[k];
+            const valor = parameters[llave];
+            const transformado = DynamoSrv.encodeItem(valor);
+            parameters2.push(transformado);
+          }
+          oneStatement.Parameters = parameters2;
+          transactions.push(oneStatement);
+        }
+      } else {
+        console.log(`Un statement vacío`);
+      }
+    }
+
+    //console.log(JSON.stringify(transactions, null, 4));
+    await DynamoSrv.runInTransaction(input);
+  }
 }

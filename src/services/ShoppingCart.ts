@@ -43,13 +43,78 @@ export class ShoppingCart {
       keys: ["userId", "marketId"],
     };
   }
+  //payment = await ShoppingCart.startTransaction(payment, email, userId, created);
+  static async startTransaction(
+    payment: any,
+    email: string,
+    userId: string,
+    created: number
+  ) {
+    const transactionData: WompiStartTransactionData = {
+      cardId: payment.cardId,
+      cuotas: payment.cuotas,
+      total: payment.total,
+      uuid: payment.uuid,
+      email,
+    };
+    const respuestaPago = await PaymentsSrv.createTransaction(
+      transactionData,
+      userId
+    );
+    payment.wompiStatus = respuestaPago.status;
+    payment.wompiTransactionId = respuestaPago.transactionId;
+    payment.wompiCreatedAt = respuestaPago.createdAt;
+    payment.wompiFinalizedAt = respuestaPago.finalizedAt;
+    payment.wompiStatusTxt = respuestaPago.statusTxt;
+    payment.wompiEmail = respuestaPago.email;
+    // Se debe actualizar el payment
+
+    const comandos = [];
+    comandos.push(
+      await DynamoSrv.updateByPk(
+        PaymentsSrv.getTableDescPrimaryUUID(),
+        [payment],
+        false
+      )
+    );
+    // Se crea el registro de log
+    respuestaPago.paymentId = `${payment.userId}/${payment.uuid}`;
+    respuestaPago.created = created;
+    comandos.push(
+      await DynamoSrv.insertTable(
+        PaymentsSrv.getTablePrimaryPaymentLog(),
+        [respuestaPago],
+        false
+      )
+    );
+    await DynamoSrv.myRunTransactionCommands(comandos);
+    return payment;
+  }
   static async wompiForceTryPay(req: Request, res: Response, next: Function) {
     const respuesta: VaaleResponse = {
       ok: true,
     };
-    // Pidpo el identificador del pago
+    const AHORA = new Date();
+    const created = General.getDayAsContinuosNumberHmmSS(AHORA);
+    const email = General.readParam(req, "email", null, false);
+    // Pido el identificador del pago
     const uuid = General.readParam(req, "uuid", null, true);
     const userId = General.getUserId(res);
+
+    // Para reintentar un pago fallido:
+    const retry = General.readParam(req, "retry", "0", false);
+    const cuotas = parseInt(General.readParam(req, "cuotas", 1, false));
+    if (isNaN(cuotas)) {
+      throw new MyError(`Se esperaba un número en cuotas "${cuotas}"`, 400);
+    }
+    const cardId = General.readParam(req, "cardId", null, false);
+    if (retry == "1" && cardId === null) {
+      throw new MyError(
+        `Para reintentar un pago se debe enviar un cardId`,
+        400
+      );
+    }
+
     // Leo el pago
     const paymentList = await DynamoSrv.searchByPkSingle(
       PaymentsSrv.getTableDescPrimaryUUID(),
@@ -64,35 +129,40 @@ export class ShoppingCart {
       throw new MyError(`No existe el pago "${uuid}"`, 400);
     }
     const payment = paymentList.items[0];
+    if (
+      retry == "1" &&
+      ["APPROVED", "PENDING"].indexOf(payment.wompiStatus) >= 0
+    ) {
+      // Si está en cualquiera de esos escenarios no se puede reintentar
+      throw new MyError(
+        `Acción no permitida porque la transacción está "${payment.wompiStatus}"`,
+        400
+      );
+    }
     // Casuistica del pago
     if ([null, undefined, ""].indexOf(payment.wompiStatus) >= 0) {
       // Se intenta hacer el pago por primera vez...
-      const transactionData: WompiStartTransactionData = {
-        cardId: payment.cardId,
-        cuotas: payment.cuotas,
-        total: payment.total,
-        uuid: payment.uuid,
-      };
-      const respuestaPago = await PaymentsSrv.createTransaction(
-        transactionData,
-        userId
-      );
-      payment.wompiStatus = respuestaPago.status;
-      payment.wompiTransactionId = respuestaPago.transactionId;
-      payment.wompiCreatedAt = respuestaPago.createdAt;
-      payment.wompiFinalizedAt = respuestaPago.finalizedAt;
-      payment.wompiStatusTxt = respuestaPago.statusTxt;
-      payment.wompiEmail = respuestaPago.email;
-      // Se debe actualizar el payment
-      await DynamoSrv.updateByPk(PaymentsSrv.getTableDescPrimaryUUID(), [
-        payment,
-      ]);
+      await ShoppingCart.startTransaction(payment, email, userId, created);
       respuesta.body = payment;
     } else if (
       ["APPROVED", "DECLINED", "VOIDED", "ERROR"].indexOf(
         payment.wompiStatus
       ) >= 0
     ) {
+      if (["APPROVED"].indexOf(payment.wompiStatus) < 0) {
+        // Solo si no está aprovada se mira si se desea reintentar
+        if (retry == "1") {
+          payment.cardId = cardId; // Se actualiza el método de pago
+          payment.wompiStatus = null;
+          payment.wompiStatusTxt = null;
+          payment.wompiFinalizedAt = null;
+          payment.wompiTransactionId = null;
+          payment.wompiCreatedAt = null;
+          payment.wompiEmail = null;
+
+          await ShoppingCart.startTransaction(payment, email, userId, created);
+        }
+      }
       // Nada que hacer, toca intentar otra transacción
       respuesta.body = payment;
     } else if (["PENDING"].indexOf(payment.wompiStatus) >= 0) {
@@ -100,12 +170,31 @@ export class ShoppingCart {
       const respuestaPago = await PaymentsSrv.queryTransaction(
         payment.wompiTransactionId
       );
-      payment.wompiStatus = respuestaPago.status;
-      payment.wompiFinalizedAt = respuestaPago.finalizedAt;
-      payment.wompiStatusTxt = respuestaPago.statusTxt;
-      await DynamoSrv.updateByPk(PaymentsSrv.getTableDescPrimaryUUID(), [
-        payment,
-      ]);
+      if (respuestaPago.status != payment.wompiStatus) {
+        // Solo si es diferente lo actualizo
+        payment.wompiStatus = respuestaPago.status;
+        payment.wompiStatusTxt = respuestaPago.statusTxt;
+        payment.wompiFinalizedAt = respuestaPago.finalizedAt;
+        const comandos = [];
+        comandos.push(
+          await DynamoSrv.updateByPk(
+            PaymentsSrv.getTableDescPrimaryUUID(),
+            [payment],
+            false
+          )
+        );
+        // Se crea el registro de log
+        respuestaPago.paymentId = `${payment.userId}/${payment.uuid}`;
+        respuestaPago.created = created;
+        comandos.push(
+          await DynamoSrv.insertTable(
+            PaymentsSrv.getTablePrimaryPaymentLog(),
+            [respuestaPago],
+            false
+          )
+        );
+        await DynamoSrv.myRunTransactionCommands(comandos);
+      }
       respuesta.body = payment;
     }
     res.status(200).send(respuesta);
@@ -118,7 +207,10 @@ export class ShoppingCart {
     const size = General.readParam(req, "size", DEFAUL_PAGE_SIZE, false);
     const userId = General.getUserId(res);
     const marketId = General.readParam(req, "marketId", null, true);
-    const cuotas = General.readParam(req, "cuotas", 1, false);
+    const cuotas = parseInt(General.readParam(req, "cuotas", 1, false));
+    if (isNaN(cuotas)) {
+      throw new MyError(`Se esperaba un número en cuotas "${cuotas}"`, 400);
+    }
     const cardId = General.readParam(req, "cardId", null, true);
     let uuid = General.readParam(req, "uuid", null, false);
     let providedUUID = true;
@@ -294,37 +386,7 @@ export class ShoppingCart {
       )
     );
 
-    const transactions: Array<any> = [];
-    const input = {
-      TransactStatements: transactions,
-    };
-
-    for (let i = 0; i < comandos.length; i++) {
-      const comando = comandos[i];
-      const statements = comando.Statements;
-      if (statements) {
-        for (let j = 0; j < statements.length; j++) {
-          const oneStatement = statements[j];
-          // Convert datatypes
-          const parameters = oneStatement.Parameters;
-          const parameters2 = [];
-          const llaves = Object.keys(parameters);
-          for (let k = 0; k < llaves.length; k++) {
-            const llave = llaves[k];
-            const valor = parameters[llave];
-            const transformado = DynamoSrv.encodeItem(valor);
-            parameters2.push(transformado);
-          }
-          oneStatement.Parameters = parameters2;
-          transactions.push(oneStatement);
-        }
-      } else {
-        console.log(`Un statement vacío`);
-      }
-    }
-
-    //console.log(JSON.stringify(transactions, null, 4));
-    await DynamoSrv.runInTransaction(input);
+    await DynamoSrv.myRunTransactionCommands(comandos);
 
     respuesta.body = {
       cuenta: currentShoppingCart,
