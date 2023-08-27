@@ -14,6 +14,7 @@ import { v4 as uuidv4 } from "uuid";
 import { VaalePaymentHistory } from "../models/VaalePaymentHistory";
 import { PayMethodSrv } from "./PayMethodSrv";
 import { PaymentsSrv } from "./PaymentsSrv";
+import { VaalePaymentMethod } from "../models/VaalePaymentMethod";
 
 const DEFAUL_PAGE_SIZE = 20;
 
@@ -102,10 +103,13 @@ export class ShoppingCart {
         const uuid = partes[1];
         const intento = parseInt(partes[2]) + 1;
         payment.uuidn = `${uuid}_${intento}`;
+      } else {
+        throw new Error(`No se logró definir el uuidn de ${payment.uuidn}`);
       }
     }
   }
   static async wompiForceTryPay(req: Request, res: Response, next: Function) {
+    //console.log("wompiForceTryPay...");
     const respuesta: VaaleResponse = {
       ok: true,
     };
@@ -116,6 +120,11 @@ export class ShoppingCart {
     const uuid = General.readParam(req, "uuid", null, true);
     const userId = General.getUserId(res);
 
+    if ([null, undefined, ""].indexOf(uuid) >= 0) {
+      throw new MyError(`Se esperaba el uuid`, 400);
+    }
+
+    //console.log(`uuid:${uuid} userId:${userId}`);
     // Para reintentar un pago fallido:
     const retry = General.readParam(req, "retry", "0", false);
     const cuotas = parseInt(General.readParam(req, "cuotas", 1, false));
@@ -213,7 +222,18 @@ export class ShoppingCart {
     }
     res.status(200).send(respuesta);
   }
+  static computeObfuscatedName(paymentMethod: VaalePaymentMethod) {
+    let last4chars = "0000";
+    const cardIdTxt = paymentMethod.cardIdTxt;
+    if (typeof cardIdTxt == "string") {
+      last4chars = cardIdTxt.substring(cardIdTxt.length - 4);
+    }
+    return `${paymentMethod.brand
+      ?.replace("CardType.", "")
+      .toUpperCase()} **** ${last4chars}`;
+  }
   static async closePaging(req: Request, res: Response, next: Function) {
+    //console.log("closePaging...");
     const respuesta: VaaleResponse = {
       ok: true,
     };
@@ -227,6 +247,8 @@ export class ShoppingCart {
     }
     const cardId = General.readParam(req, "cardId", null, true);
     let uuid = General.readParam(req, "uuid", null, false);
+
+    //console.log(`uuid: ${uuid} marketId:${marketId} userId: ${userId}`);
     let providedUUID = true;
     if (uuid == null) {
       providedUUID = false;
@@ -247,6 +269,12 @@ export class ShoppingCart {
       )
     );
 
+    // Se valida el cardId y se toma el cardIdTxt
+    const found = await PayMethodSrv.getPaymentMethod(userId, cardId);
+    if (found == null) {
+      throw new MyError(`El método de pago "${cardId}" no existe`, 400);
+    }
+
     // Se busca la cuenta que se va a cerrar
     let currentShoppingCart: VaalePaymentHistory = {
       userId,
@@ -254,6 +282,7 @@ export class ShoppingCart {
       marketId,
       cuotas,
       cardId,
+      cardIdTxt: ShoppingCart.computeObfuscatedName(found),
       total: 0,
       taxes: 0,
     };

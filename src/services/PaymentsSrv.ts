@@ -21,7 +21,7 @@ export class PaymentsSrv {
     APPROVED: "Transacción aprobada",
     DECLINED: "Transacción rechazada",
     VOIDED: "Transacción anulada", // (sólo aplica para transacciones con tarjeta)
-    ERROR: "Error interno del método de pago respectivo",
+    ERROR: "Error interno",
     PENDING: "Pendiente",
   };
   static getTableDescPrimary(): VaaelTableDesc {

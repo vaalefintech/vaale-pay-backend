@@ -10,5 +10,11 @@ export interface VaalePaymentHistory {
   marketId?: string;
   cardId?: string;
   cuotas?: number;
+  cardIdTxt?: string;
+
+  wompiTransactionId?: string;
+  wompiStatus?: string;
+  wompiStatusTxt?: string;
+
   products?: Array<VaaleShoppingCartDetail>;
 }
