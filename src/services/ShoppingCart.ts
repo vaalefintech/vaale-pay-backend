@@ -1,7 +1,10 @@
 import { Request, Response } from "express";
 import { VaaleProduct } from "../models/VaaleProduct";
 import { VaaleResponse } from "../models/VaaleResponse";
-import { VaaleShoppingCartDetail } from "../models/VaaleShoppingCartDetail";
+import {
+  VaaleShoppingCartDetail,
+  WompiStartTransactionData,
+} from "../models/VaaleShoppingCartDetail";
 import { VaaleShoppingCartProduct } from "../models/VaaleShoppingCartProduct";
 import { General } from "../utilities/General";
 import { MyError } from "../utilities/MyError";
@@ -40,6 +43,73 @@ export class ShoppingCart {
       keys: ["userId", "marketId"],
     };
   }
+  static async wompiForceTryPay(req: Request, res: Response, next: Function) {
+    const respuesta: VaaleResponse = {
+      ok: true,
+    };
+    // Pidpo el identificador del pago
+    const uuid = General.readParam(req, "uuid", null, true);
+    const userId = General.getUserId(res);
+    // Leo el pago
+    const paymentList = await DynamoSrv.searchByPkSingle(
+      PaymentsSrv.getTableDescPrimaryUUID(),
+      {
+        userId,
+        uuid,
+      },
+      1,
+      null
+    );
+    if (paymentList.items.length == 0 || paymentList.items[0] == null) {
+      throw new MyError(`No existe el pago "${uuid}"`, 400);
+    }
+    const payment = paymentList.items[0];
+    // Casuistica del pago
+    if ([null, undefined, ""].indexOf(payment.wompiStatus) >= 0) {
+      // Se intenta hacer el pago por primera vez...
+      const transactionData: WompiStartTransactionData = {
+        cardId: payment.cardId,
+        cuotas: payment.cuotas,
+        total: payment.total,
+        uuid: payment.uuid,
+      };
+      const respuestaPago = await PaymentsSrv.createTransaction(
+        transactionData,
+        userId
+      );
+      payment.wompiStatus = respuestaPago.status;
+      payment.wompiTransactionId = respuestaPago.transactionId;
+      payment.wompiCreatedAt = respuestaPago.createdAt;
+      payment.wompiFinalizedAt = respuestaPago.finalizedAt;
+      payment.wompiStatusTxt = respuestaPago.statusTxt;
+      payment.wompiEmail = respuestaPago.email;
+      // Se debe actualizar el payment
+      await DynamoSrv.updateByPk(PaymentsSrv.getTableDescPrimaryUUID(), [
+        payment,
+      ]);
+      respuesta.body = payment;
+    } else if (
+      ["APPROVED", "DECLINED", "VOIDED", "ERROR"].indexOf(
+        payment.wompiStatus
+      ) >= 0
+    ) {
+      // Nada que hacer, toca intentar otra transacción
+      respuesta.body = payment;
+    } else if (["PENDING"].indexOf(payment.wompiStatus) >= 0) {
+      // Se invoca el servicio que verifica el estado del pago
+      const respuestaPago = await PaymentsSrv.queryTransaction(
+        payment.wompiTransactionId
+      );
+      payment.wompiStatus = respuestaPago.status;
+      payment.wompiFinalizedAt = respuestaPago.finalizedAt;
+      payment.wompiStatusTxt = respuestaPago.statusTxt;
+      await DynamoSrv.updateByPk(PaymentsSrv.getTableDescPrimaryUUID(), [
+        payment,
+      ]);
+      respuesta.body = payment;
+    }
+    res.status(200).send(respuesta);
+  }
   static async closePaging(req: Request, res: Response, next: Function) {
     const respuesta: VaaleResponse = {
       ok: true,
@@ -48,6 +118,7 @@ export class ShoppingCart {
     const size = General.readParam(req, "size", DEFAUL_PAGE_SIZE, false);
     const userId = General.getUserId(res);
     const marketId = General.readParam(req, "marketId", null, true);
+    const cuotas = General.readParam(req, "cuotas", 1, false);
     const cardId = General.readParam(req, "cardId", null, true);
     let uuid = General.readParam(req, "uuid", null, false);
     let providedUUID = true;
@@ -75,6 +146,7 @@ export class ShoppingCart {
       userId,
       uuid,
       marketId,
+      cuotas,
       cardId,
       total: 0,
       taxes: 0,

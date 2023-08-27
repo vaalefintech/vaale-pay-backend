@@ -36,6 +36,13 @@ app.use(auth(authParams));
 
 app.use(cors);
 
+app.post(`${process.env.PREFIX_PATH}/api/wompi/forcetrypay`, [
+  commonHeaders,
+  checkAuthenticated,
+  express.json(),
+  handleErrorsDecorator(ShoppingCart.wompiForceTryPay),
+]);
+
 app.post(`${process.env.PREFIX_PATH}/api/user/update`, [
   commonHeaders,
   checkAuthenticated,

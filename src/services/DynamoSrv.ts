@@ -133,9 +133,16 @@ export class DynamoSrv {
         const rowType = rowTypes[llave];
         const temp: { [key: string]: any } = {};
         temp[rowType] = row[llave];
+        if (temp[rowType] === undefined) {
+          temp[rowType] = null;
+        }
         values.push(temp);
       } else {
-        values.push(row[llave]);
+        if (row[llave] === undefined) {
+          values.push(null);
+        } else {
+          values.push(row[llave]);
+        }
       }
     }
 
@@ -386,7 +393,7 @@ export class DynamoSrv {
     } else if (tipo == "number") {
       return { N: `${item}` };
     }
-    throw new MyError(`No se soporta el tipo de dato "${tipo}"`, 500);
+    throw new MyError(`[1] No se soporta el tipo de dato "${tipo}"`, 500);
   }
   static decodeItem(item: any) {
     const keys = Object.keys(item);
@@ -398,8 +405,13 @@ export class DynamoSrv {
         response[key] = rawValue["S"];
       } else if ("N" in rawValue) {
         response[key] = parseFloat(rawValue["N"]);
+      } else if ("NULL" in rawValue && rawValue["NULL"] === true) {
+        response[key] = null;
       } else {
-        throw new MyError(`No se soporta el tipo de dato "${rawValue}"`, 500);
+        throw new MyError(
+          `[2] No se soporta el tipo de dato "${JSON.stringify(rawValue)}"`,
+          500
+        );
       }
       // TODO seguir con los demás tipos, por ejemplo B para boolean
     }

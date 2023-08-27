@@ -19,4 +19,5 @@ export interface WompiTransactionResponseData {
   finalizedAt?: string | null;
   status: string; // APPROVED | DECLINED | VOIDED | ERROR
   statusTxt: string;
+  email?: string | null;
 }

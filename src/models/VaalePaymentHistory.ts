@@ -9,5 +9,6 @@ export interface VaalePaymentHistory {
   taxes?: number;
   marketId?: string;
   cardId?: string;
+  cuotas?: number;
   products?: Array<VaaleShoppingCartDetail>;
 }

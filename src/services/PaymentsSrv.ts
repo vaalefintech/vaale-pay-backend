@@ -434,19 +434,10 @@ export class PaymentsSrv {
     return hashBuffer.toString();
   }
 
-  static async createTransaction(req: Request, res: Response, next: Function) {
-    const respuesta: VaaleResponse = {
-      ok: true,
-    };
-    const transactionData: WompiStartTransactionData = General.readParam(
-      req,
-      "payload",
-      null,
-      true
-    );
-
-    // buscar con el transactionData.cardId el wompiSourceId
-    const userId = General.getUserId(res);
+  static async createTransaction(
+    transactionData: WompiStartTransactionData,
+    userId: string
+  ) {
     const cardFound = await PayMethodSrv.getPaymentMethod(
       userId,
       transactionData.cardId
@@ -512,25 +503,14 @@ export class PaymentsSrv {
       transactionId: data.id,
       createdAt: data.created_at,
       status: data.status,
+      email: validatedEmail,
       statusTxt: PaymentsSrv.WOMPI_STATUS_DESC[data.status],
     };
 
-    // TODO se debe guardar y asociar en dynamo
-
-    respuesta.body = filtered;
-    res.status(200).send(respuesta);
+    return filtered;
   }
 
-  static async queryTransaction(req: Request, res: Response, next: Function) {
-    const respuesta: VaaleResponse = {
-      ok: true,
-    };
-    const transactionId: string = General.readParam(
-      req,
-      "transactionId",
-      null,
-      true
-    );
+  static async queryTransaction(transactionId: string) {
     const url = process.env.WOMPI_URL;
     const path = `/transactions/${transactionId}`;
     const completeUrl = `${url}${path}`;
@@ -561,11 +541,7 @@ export class PaymentsSrv {
       status: data.status,
       statusTxt: PaymentsSrv.WOMPI_STATUS_DESC[data.status],
     };
-    respuesta.body = filtered;
-
-    // TODO se debe guardar y asociar en dynamo
-
-    res.status(200).send(respuesta);
+    return filtered;
   }
 
   // TODO https://docs.wompi.co/docs/colombia/eventos
