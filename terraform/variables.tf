@@ -19,9 +19,9 @@ variable "account" {
   default     = "060199919132"
 }
 
-# terraform apply -var zipfile="../zips/build_20230819_163235.zip"
+# terraform apply -var zipfile="../zips/build_20230827_154411.zip"
 variable "zipfile" {
   description = "Zip File"
   type        = string
-  default     = "../zips/build_20230819_163235.zip"
+  default     = "../zips/build_20230827_154411.zip"
 }
