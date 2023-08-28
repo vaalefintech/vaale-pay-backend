@@ -41,6 +41,40 @@
 			"response": []
 		},
 		{
+			"name": "{{host}}/api/wompi/forcetrypay",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"uuid\": \"carulla5078/7b19c9fe-7755-46db-af9d-cf1a0fc26052\",\n    \"retry\": \"0\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/api/wompi/forcetrypay",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"wompi",
+						"forcetrypay"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "{{host}}/api/user/update",
 			"request": {
 				"method": "POST",
@@ -75,40 +109,6 @@
 			"response": []
 		},
 		{
-			"name": "{{host}}/api/wompi/tokenize",
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "authorization",
-						"value": "Bearer {{token}}",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"payload\": {\n        \"cardId\": \"4242424242424242\",\n        \"expirationDate\": \"07/26\",\n        \"cvv\": \"124\",\n        \"name\": \"Pedro Pérez\"\n    }\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{host}}/api/wompi/tokenize",
-					"host": [
-						"{{host}}"
-					],
-					"path": [
-						"api",
-						"wompi",
-						"tokenize"
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "{{host}}/api/wompi/createsource",
 			"request": {
 				"method": "POST",
@@ -121,7 +121,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"acceptanceToken\": \"eyJhbGciOiJIUzI1NiJ9.eyJjb250cmFjdF9pZCI6NDEsInBlcm1hbGluayI6Imh0dHBzOi8vd29tcGkuY29tL2Fzc2V0cy9kb3dubG9hZGJsZS9UQy1Vc3Vhcmlvcy1Db2xvbWJpYS5wZGYiLCJmaWxlX2hhc2giOiJiZjcyMmFjZDExYzRjMzQzMTVjMDg1NWIyMmIyOGI5OSIsImppdCI6IjE2OTI4MDQwMzYtMzcyNTYiLCJlbWFpbCI6IiIsImV4cCI6MTY5MjgwNzYzNn0.J48FkYYOeE82GdF13wndm-RNxzJxZAEiMHNZw0GlGYI\",\n    \"cardId\": \"4242424242424242\"\n}",
+					"raw": "{\n    \"acceptanceToken\": \"eyJhbGciOiJIUzI1NiJ9.eyJjb250cmFjdF9pZCI6NDEsInBlcm1hbGluayI6Imh0dHBzOi8vd29tcGkuY29tL2Fzc2V0cy9kb3dubG9hZGJsZS9UQy1Vc3Vhcmlvcy1Db2xvbWJpYS5wZGYiLCJmaWxlX2hhc2giOiJiZjcyMmFjZDExYzRjMzQzMTVjMDg1NWIyMmIyOGI5OSIsImppdCI6IjE2OTMwNjE0MjAtNjk0NDEiLCJlbWFpbCI6IiIsImV4cCI6MTY5MzA2NTAyMH0.RFF_JvO1LrPn8FIbyN4oAeZwHlSLZN7M0g7M4YIrCrw\",\n    \"cardId\": \"9b8a421bff5f30d20f118185eb6e4523\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -495,7 +495,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\"size\": 1, \"uuid\": \"carulla5078/28d16127-4eb9-4677-a8d2-3b2866213228\"}",
+					"raw": "{\"size\": 1, \"uuid\": \"vecino/1b2ab42e-d136-4c1d-aff6-111a2fb582b1\"}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -631,7 +631,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{   \n    \"marketId\": \"carulla5078\",\n    \"size\": 1,\n    \"uuid\": \"carulla5078/b3a464f5-b96a-4894-8343-1c1bb7df6ba7\"\n}",
+					"raw": "{   \n    \"marketId\": \"carulla5078\",\n    \"size\": 1,\n    \"cardId\": \"9b8a421bff5f30d20f118185eb6e4523\",\n    \"uuid\": \"carulla5078/dc26c937-690b-4f7e-b5e6-32a84185c2c6\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -699,7 +699,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\"marketId\": \"carulla5078\", \"codebar\": \"7701001929446\", \"quantity\": 1}",
+					"raw": "{\"marketId\": \"carulla5078\", \"codebar\": \"7702535005354\", \"quantity\": 1}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -801,7 +801,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"payload\": [\n        {\n            \"marketId\": \"carulla5078\",\n            \"codebar\": \"7702024062745\",\n            \"brand\": \"Nestle\",\n            \"label\": \"Milo\",\n            \"detail\": \"1000g\",\n            \"price\": 19600,\n            \"taxes\": 0.19\n        },\n        {\n            \"marketId\": \"carulla5078\",\n            \"codebar\": \"7701001929446\",\n            \"brand\": \"Frescampo\",\n            \"label\": \"Maicitos dulces\",\n            \"detail\": \"425g\",\n            \"price\": 5000,\n            \"taxes\": 0\n        },\n        {\n            \"marketId\": \"carulla5078\",\n            \"codebar\": \"7704269106390\",\n            \"brand\": \"Bicco\",\n            \"label\": \"Café instantáneo\",\n            \"detail\": \"85g\",\n            \"price\": 3000,\n            \"taxes\": 0\n        },\n        {\n            \"marketId\": \"carulla5078\",\n            \"codebar\": \"7701101358139\",\n            \"brand\": \"Zenú\",\n            \"label\": \"Maíz\",\n            \"detail\": \"241g\",\n            \"price\": 4000,\n            \"taxes\": 0\n        }\n    ]\n}",
+					"raw": "{\n    \"payload\": [\n        {\n            \"marketId\": \"carulla5078\",\n            \"codebar\": \"7702024062745\",\n            \"brand\": \"Nestle\",\n            \"label\": \"Milo\",\n            \"detail\": \"1000g\",\n            \"price\": 19600,\n            \"taxes\": 0.19\n        },\n        {\n            \"marketId\": \"carulla5078\",\n            \"codebar\": \"7701001929446\",\n            \"brand\": \"Frescampo\",\n            \"label\": \"Maicitos dulces\",\n            \"detail\": \"425g\",\n            \"price\": 5000,\n            \"taxes\": 0\n        },\n        {\n            \"marketId\": \"carulla5078\",\n            \"codebar\": \"7704269106390\",\n            \"brand\": \"Bicco\",\n            \"label\": \"Café instantáneo\",\n            \"detail\": \"85g\",\n            \"price\": 3000,\n            \"taxes\": 0\n        },\n        {\n            \"marketId\": \"carulla5078\",\n            \"codebar\": \"7701101358139\",\n            \"brand\": \"Zenú\",\n            \"label\": \"Maíz\",\n            \"detail\": \"241g\",\n            \"price\": 4000,\n            \"taxes\": 0\n        },\n                {\n            \"marketId\": \"vecino\",\n            \"codebar\": \"7704269106390\",\n            \"brand\": \"Bicco\",\n            \"label\": \"Café instantáneo\",\n            \"detail\": \"85g\",\n            \"price\": 3000,\n            \"taxes\": 0\n        }\n    ]\n}",
 					"options": {
 						"raw": {
 							"language": "json"
