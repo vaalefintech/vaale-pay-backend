@@ -171,8 +171,13 @@ export class ShoppingCart {
       if (["APPROVED"].indexOf(payment.wompiStatus) < 0) {
         // Solo si no está aprovada se mira si se desea reintentar
         if (retry == "1") {
-          if (cardId != null) {
+          if (cardId != null && payment.cardId != cardId) {
+            const found = await PayMethodSrv.getPaymentMethod(userId, cardId);
+            if (found == null) {
+              throw new MyError(`El método de pago "${cardId}" no existe`, 400);
+            }
             payment.cardId = cardId; // Se actualiza el método de pago
+            payment.cardIdTxt = ShoppingCart.computeObfuscatedName(found);
           }
           payment.wompiStatus = null;
           payment.wompiStatusTxt = null;
