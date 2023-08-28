@@ -82,6 +82,7 @@ export class ShoppingCart {
     respuestaPago.paymentId = `${payment.userId}/${payment.uuid}`;
     respuestaPago.paymentIdN = `${payment.userId}/${payment.uuidn}`;
     respuestaPago.created = created;
+    respuestaPago.cardId = payment.cardId;
     comandos.push(
       await DynamoSrv.insertTable(
         PaymentsSrv.getTablePrimaryPaymentLog(),
@@ -214,6 +215,7 @@ export class ShoppingCart {
         respuestaPago.created = created;
         respuestaPago.paymentIdN = `${payment.userId}/${payment.uuidn}`;
         respuestaPago.email = payment.wompiEmail;
+        respuestaPago.cardId = payment.cardId;
         comandos.push(
           await DynamoSrv.insertTable(
             PaymentsSrv.getTablePrimaryPaymentLog(),

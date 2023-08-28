@@ -23,4 +23,5 @@ export interface WompiTransactionResponseData {
   paymentId?: string | null;
   paymentIdN?: string | null;
   created?: number | null;
+  cardId?: string | null;
 }
