@@ -1,6 +1,6 @@
 
-# terraform apply -var environment="stg"
-# terraform apply -var environment="vaale-prod"
+# terraform apply -var environment="dev"
+# terraform apply -var environment="pro"
 variable "environment" {
   description = "Environment"
   type        = string
@@ -19,9 +19,9 @@ variable "account" {
   default     = "060199919132"
 }
 
-# terraform apply -var zipfile="../zips/build_20230827_191136.zip"
+# terraform apply -var zipfile="../zips/build_20230828_091000.zip"
 variable "zipfile" {
   description = "Zip File"
   type        = string
-  default     = "../zips/build_20230827_191136.zip"
+  default     = "../zips/build_20230828_091000.zip"
 }

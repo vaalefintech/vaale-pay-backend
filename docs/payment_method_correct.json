@@ -1,0 +1,38 @@
+[1] Tokenize...
+[1] Tokenize...
+[1] Tokenize:
+[1] {
+[1]     "cardId": "9b8a421bff5f30d20f118185eb6e4523",
+[1]     "name": "edhgd",
+[1]     "cvv": "000",
+[1]     "expirationDate": "00/00",
+[1]     "updated": 1693231146526,
+[1]     "userId": "email/test@vaale.co",
+[1]     "brand": "CardType.visa",
+[1]     "wompiToken": "tok_test_39908_2Aec23DcA0e575B567E3bA6F40771564",
+[1]     "wompiCreated": "2023-08-28T13:59:06.372+00:00",
+[1]     "wompiExpiresAt": "2024-02-24T13:59:05.000Z",
+[1]     "wompiValidityEndsAt": "2023-08-30T13:59:06.372+00:00",
+[1]     "wompiStatus": "CREATED",
+[1]     "cardIdTxt": "4242000000004242",
+[1]     "wompiSourceStatus": "",
+[1]     "acceptanceToken": "",
+[1]     "wompiSourceId": 0
+[1] }
+[1] createPaymentSource...
+[1] {
+[1]     "id": 84781,
+[1]     "public_data": {
+[1]         "bin": "424242",
+[1]         "last_four": "4242",
+[1]         "exp_month": "12",
+[1]         "exp_year": "23",
+[1]         "card_holder": "edhgd",
+[1]         "validity_ends_at": "2026-02-28T13:59:13.020+00:00",
+[1]         "type": "CARD"
+[1]     },
+[1]     "token": "tok_test_39908_2Aec23DcA0e575B567E3bA6F40771564",
+[1]     "type": "CARD",
+[1]     "status": "AVAILABLE",
+[1]     "customer_email": "test@vaale.co"
+[1] }

@@ -204,6 +204,7 @@ export class PaymentsSrv {
   }
 
   static async cardTokenization(req: Request, res: Response, next: Function) {
+    console.log("Tokenize...");
     const respuesta: VaaleResponse = {
       ok: true,
     };
@@ -329,6 +330,7 @@ export class PaymentsSrv {
 
       await DynamoSrv.insertTable(tableDesc, [paymentMethod]);
       respuesta.body = paymentMethod;
+      console.log(JSON.stringify(paymentMethod, null, 4));
       res.status(200).send(respuesta);
     } else {
       // Mensaje de error
@@ -342,6 +344,7 @@ export class PaymentsSrv {
     res: Response,
     next: Function
   ) {
+    console.log("createPaymentSource...");
     const respuesta: VaaleResponse = {
       ok: true,
     };
@@ -408,6 +411,7 @@ export class PaymentsSrv {
     );
 
     cardFound.wompiSourceStatus = getResponse.data.data.status;
+    console.log(JSON.stringify(getResponse.data.data, null, 4));
     if (cardFound.wompiSourceStatus == "AVAILABLE") {
       cardFound.wompiSourceId = getResponse.data.data.id;
       cardFound.acceptanceToken = acceptanceToken;
