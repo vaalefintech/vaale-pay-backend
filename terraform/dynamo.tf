@@ -1,8 +1,8 @@
 resource "aws_dynamodb_table" "vaale_product_table" {
   name           = "${var.environment}_product"
-  billing_mode   = "PROVISIONED"
-  read_capacity  = 20
-  write_capacity = 20
+  billing_mode   = local.dynamo_billing_mode
+  read_capacity  = local.dynamo_hight_capacity
+  write_capacity = local.dynamo_hight_capacity
   hash_key       = "marketId"
   range_key      = "codebar"
 
@@ -23,9 +23,9 @@ resource "aws_dynamodb_table" "vaale_product_table" {
 
 resource "aws_dynamodb_table" "vaale_shopping_cart_product_table" {
   name           = "${var.environment}_shopping_cart_product"
-  billing_mode   = "PROVISIONED"
-  read_capacity  = 20
-  write_capacity = 20
+  billing_mode   = local.dynamo_billing_mode
+  read_capacity  = local.dynamo_hight_capacity
+  write_capacity = local.dynamo_hight_capacity
   hash_key       = "userId"
   range_key      = "productId"
 
@@ -48,8 +48,8 @@ resource "aws_dynamodb_table" "vaale_shopping_cart_product_table" {
     name               = "UserMarket"
     hash_key           = "userId"
     range_key          = "marketId"
-    write_capacity     = 10
-    read_capacity      = 10
+    write_capacity     = local.dynamo_low_capacity
+    read_capacity      = local.dynamo_low_capacity
     projection_type    = "INCLUDE"
     non_key_attributes = ["productId", "quantity"]
   }
@@ -61,9 +61,9 @@ resource "aws_dynamodb_table" "vaale_shopping_cart_product_table" {
 
 resource "aws_dynamodb_table" "vaale_shopping_cart_product_done_table" {
   name           = "${var.environment}_shopping_cart_done_product"
-  billing_mode   = "PROVISIONED"
-  read_capacity  = 20
-  write_capacity = 20
+  billing_mode   = local.dynamo_billing_mode
+  read_capacity  = local.dynamo_hight_capacity
+  write_capacity = local.dynamo_hight_capacity
   hash_key       = "userId"
   range_key      = "productId"
 
@@ -86,8 +86,8 @@ resource "aws_dynamodb_table" "vaale_shopping_cart_product_done_table" {
     name               = "UserMarket"
     hash_key           = "userId"
     range_key          = "marketId"
-    write_capacity     = 10
-    read_capacity      = 10
+    write_capacity     = local.dynamo_low_capacity
+    read_capacity      = local.dynamo_low_capacity
     projection_type    = "INCLUDE"
     non_key_attributes = ["productId", "quantity"]
   }
@@ -99,9 +99,9 @@ resource "aws_dynamodb_table" "vaale_shopping_cart_product_done_table" {
 
 resource "aws_dynamodb_table" "vaale_payment_method_table" {
   name           = "${var.environment}_payment_method"
-  billing_mode   = "PROVISIONED"
-  read_capacity  = 20
-  write_capacity = 20
+  billing_mode   = local.dynamo_billing_mode
+  read_capacity  = local.dynamo_hight_capacity
+  write_capacity = local.dynamo_hight_capacity
   hash_key       = "userId"
   range_key      = "cardId"
 
@@ -122,9 +122,9 @@ resource "aws_dynamodb_table" "vaale_payment_method_table" {
 
 resource "aws_dynamodb_table" "vaale_payment_table" {
   name           = "${var.environment}_payment"
-  billing_mode   = "PROVISIONED"
-  read_capacity  = 20
-  write_capacity = 20
+  billing_mode   = local.dynamo_billing_mode
+  read_capacity  = local.dynamo_hight_capacity
+  write_capacity = local.dynamo_hight_capacity
   hash_key       = "userId"
   range_key      = "uuid"
 
@@ -147,8 +147,8 @@ resource "aws_dynamodb_table" "vaale_payment_table" {
     name            = "PayByDate"
     hash_key        = "userId"
     range_key       = "updated"
-    write_capacity  = 10
-    read_capacity   = 10
+    write_capacity  = local.dynamo_low_capacity
+    read_capacity   = local.dynamo_low_capacity
     projection_type = "ALL"
   }
 
@@ -159,9 +159,9 @@ resource "aws_dynamodb_table" "vaale_payment_table" {
 
 resource "aws_dynamodb_table" "vaale_geomarket_table" {
   name           = "${var.environment}_geomarket"
-  billing_mode   = "PROVISIONED"
-  read_capacity  = 20
-  write_capacity = 10
+  billing_mode   = local.dynamo_billing_mode
+  read_capacity  = local.dynamo_hight_capacity
+  write_capacity = local.dynamo_low_capacity
   hash_key       = "id"
   range_key      = "geohash"
 
@@ -183,8 +183,8 @@ resource "aws_dynamodb_table" "vaale_geomarket_table" {
   global_secondary_index {
     name            = "ByMarketId"
     hash_key        = "marketId"
-    write_capacity  = 10
-    read_capacity   = 20
+    write_capacity  = local.dynamo_low_capacity
+    read_capacity   = local.dynamo_hight_capacity
     projection_type = "ALL"
   }
 
@@ -195,9 +195,9 @@ resource "aws_dynamodb_table" "vaale_geomarket_table" {
 
 resource "aws_dynamodb_table" "vaale_market_table" {
   name           = "${var.environment}_market"
-  billing_mode   = "PROVISIONED"
-  read_capacity  = 20
-  write_capacity = 10
+  billing_mode   = local.dynamo_billing_mode
+  read_capacity  = local.dynamo_hight_capacity
+  write_capacity = local.dynamo_low_capacity
   hash_key       = "marketId"
 
   attribute {
@@ -212,9 +212,9 @@ resource "aws_dynamodb_table" "vaale_market_table" {
 
 resource "aws_dynamodb_table" "vaale_user_table" {
   name           = "${var.environment}_user"
-  billing_mode   = "PROVISIONED"
-  read_capacity  = 20
-  write_capacity = 20
+  billing_mode   = local.dynamo_billing_mode
+  read_capacity  = local.dynamo_hight_capacity
+  write_capacity = local.dynamo_hight_capacity
   hash_key       = "userId"
 
   attribute {
@@ -229,9 +229,9 @@ resource "aws_dynamodb_table" "vaale_user_table" {
 
 resource "aws_dynamodb_table" "vaale_payment_log_table" {
   name           = "${var.environment}_payment_log"
-  billing_mode   = "PROVISIONED"
-  read_capacity  = 20
-  write_capacity = 10
+  billing_mode   = local.dynamo_billing_mode
+  read_capacity  = local.dynamo_hight_capacity
+  write_capacity = local.dynamo_low_capacity
   hash_key       = "paymentId"
   range_key      = "created"
 
@@ -259,8 +259,8 @@ resource "aws_dynamodb_table" "vaale_payment_log_table" {
     name            = "ByTransactionId"
     hash_key        = "paymentId"
     range_key       = "transactionId"
-    write_capacity  = 10
-    read_capacity   = 20
+    write_capacity  = local.dynamo_low_capacity
+    read_capacity   = local.dynamo_hight_capacity
     projection_type = "ALL"
   }
 
@@ -268,7 +268,7 @@ resource "aws_dynamodb_table" "vaale_payment_log_table" {
     name            = "ByTry"
     hash_key        = "paymentId"
     range_key       = "paymentIdN"
-    write_capacity  = 10
+    write_capacity  = local.dynamo_low_capacity
     read_capacity   = 20
     projection_type = "ALL"
   }
